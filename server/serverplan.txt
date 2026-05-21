@@ -1,0 +1,16 @@
+// basic node.js http/sse server. Basic lobby server for a game. No game logic, just lobby management and player connections.
+
+// lobby code format: 4 uppercase letters, e.g. "ABCD". Lobby codes are unique. Lobby code is generated randomly when a new lobby is created. Lobby code is returned to the client when a new lobby is created. Lobby code is used by clients to join a lobby. Lobby code is used by the server to identify a lobby.
+
+
+// /create - create a new lobby, return lobby code (requires USERNAME) and user-secret
+// afterwards use SSE connection for lobby management
+
+// /join - join an existing lobby (requires USERNAME and LOBBY_CODE) and user-secret
+// afterwards use SSE connection connection for lobby management
+
+// GET /lobbies - return a list of all lobbies and their player counts 
+
+// /push is used for a player to push a message via broadcast to the other ones, providing its user-secret it authenticates itself. 
+
+If the SSE connection of someone closes he should disconnect from from the game and a leave message has to be broadcasted to the other clients. If it is the lobby owner, the lobby can be closed and all open connections can be terinated. 
