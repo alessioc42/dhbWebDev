@@ -73,6 +73,14 @@ class GameClient {
 		});
 	}
 
+	chooseOption(userSecret, optionId) {
+		return this.#request("/choose", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ USER_SECRET: userSecret, OPTION_ID: optionId }),
+		});
+	}
+
 	async connectLobby({ lobbyCode, userSecret, onEvent } = {}) {
 		const url = this.#url("/events");
 		if (lobbyCode) {

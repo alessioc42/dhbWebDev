@@ -3,29 +3,30 @@ import { randomInt, randomUUID } from "node:crypto";
 import { SSECapableServer } from "./http_sse.js";
 
 const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+const TOTAL_ROUNDS = 11;
+const ROUND_SCORE_BASE = 10;
 
 function isRecord(value) {
 	return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
 function normalizeText(value) {
-	if (typeof value !== "string") {
-		return "";
-	}
-
-	return value.trim();
+	return typeof value === "string" ? value.trim() : "";
 }
 
 function getField(source, ...names) {
 	for (const name of names) {
-		if (!Object.prototype.hasOwnProperty.call(source, name)) {
-			continue;
+		if (Object.prototype.hasOwnProperty.call(source, name)) {
+			return source[name];
 		}
-
-		return source[name];
 	}
 
 	return undefined;
+}
+
+function scoreRound(durationMs) {
+	const durationSeconds = Math.max(durationMs / 1000, 0.001);
+	return Math.round((ROUND_SCORE_BASE / durationSeconds) * 100) / 100;
 }
 
 class GameServer {
@@ -38,6 +39,7 @@ class GameServer {
 		this.server.post("/join", this.#joinLobby.bind(this));
 		this.server.get("/lobbies", this.#listLobbies.bind(this));
 		this.server.post("/push", this.#pushMessage.bind(this));
+		this.server.post("/choose", this.#chooseOption.bind(this));
 		this.server.sse("/events", this.#connectPlayer.bind(this));
 	}
 
@@ -70,12 +72,75 @@ class GameServer {
 		return randomUUID();
 	}
 
-	#serializePlayer(player) {
+	#newRound(roundNumber) {
+		for (;;) {
+			const optionCount = 5 + randomInt(2);
+			const values = [];
+			let target = 0;
+
+			for (let index = 0; index < optionCount; index += 1) {
+				let value = 0;
+				while (value === 0) {
+					value = randomInt(-25, 26);
+				}
+
+				values.push(value);
+				target += value;
+			}
+
+			if (target < -100 || target > 100) {
+				continue;
+			}
+
+			return {
+				id: randomUUID(),
+				roundNumber,
+				target,
+				startedAt: Date.now(),
+				finished: false,
+				options: values.map((value) => ({
+					id: randomUUID(),
+					value,
+				})),
+			};
+		}
+	}
+
+	#serializePlayer(player, lobby) {
+		const game = lobby.game;
 		return {
 			username: player.username,
 			userSecret: player.secret,
 			isOwner: player.isOwner,
 			connected: Boolean(player.client),
+			roundValue: game ? game.roundValues.get(player.secret) || 0 : 0,
+			totalScore: game ? game.scores.get(player.secret) || 0 : 0,
+			selectedOptionIds: game ? [...(game.selections.get(player.secret) || new Set())] : [],
+		};
+	}
+
+	#serializeGame(lobby) {
+		const game = lobby.game;
+		if (!game) {
+			return null;
+		}
+
+		return {
+			gameId: game.id,
+			phase: game.phase,
+			roundNumber: game.roundNumber,
+			totalRounds: game.totalRounds,
+			target: game.currentRound ? game.currentRound.target : null,
+			roundStartedAt: game.currentRound ? game.currentRound.startedAt : null,
+			options: game.currentRound
+				? game.currentRound.options.map((option) => ({
+					id: option.id,
+					value: option.value,
+				}))
+				: [],
+			players: [...lobby.players.values()].map((player) => this.#serializePlayer(player, lobby)),
+			lastResult: game.lastResult,
+			finalResult: game.finalResult,
 		};
 	}
 
@@ -84,9 +149,8 @@ class GameServer {
 			lobbyCode: lobby.code,
 			playerCount: lobby.players.size,
 			owner: lobby.ownerUsername,
-			players: [...lobby.players.values()].map((player) =>
-				this.#serializePlayer(player),
-			),
+			players: [...lobby.players.values()].map((player) => this.#serializePlayer(player, lobby)),
+			game: this.#serializeGame(lobby),
 		};
 	}
 
@@ -118,6 +182,132 @@ class GameServer {
 		}
 	}
 
+	#broadcastLobbyState(lobby) {
+		this.#broadcastToLobby(lobby, "lobby_state", this.#serializeLobby(lobby));
+	}
+
+	#broadcastGameState(lobby) {
+		this.#broadcastToLobby(lobby, "game_state", this.#serializeGame(lobby));
+	}
+
+	#ensureGameState(lobby) {
+		if (!lobby.game) {
+			return null;
+		}
+
+		const game = lobby.game;
+		for (const player of lobby.players.values()) {
+			if (!game.scores.has(player.secret)) {
+				game.scores.set(player.secret, 0);
+			}
+			if (!game.roundValues.has(player.secret)) {
+				game.roundValues.set(player.secret, 0);
+			}
+			if (!game.selections.has(player.secret)) {
+				game.selections.set(player.secret, new Set());
+			}
+		}
+
+		return game;
+	}
+
+	#startGame(lobby) {
+		const game = {
+			id: randomUUID(),
+			phase: "playing",
+			roundNumber: 1,
+			totalRounds: TOTAL_ROUNDS,
+			roundValues: new Map(),
+			selections: new Map(),
+			scores: new Map(),
+			currentRound: this.#newRound(1),
+			lastResult: null,
+			finalResult: null,
+		};
+
+		for (const player of lobby.players.values()) {
+			game.roundValues.set(player.secret, 0);
+			game.selections.set(player.secret, new Set());
+			game.scores.set(player.secret, 0);
+		}
+
+		lobby.game = game;
+		return game;
+	}
+
+	#finishRound(lobby, winnerSecret) {
+		const game = lobby.game;
+		if (!game || game.phase !== "playing" || !game.currentRound || game.currentRound.finished) {
+			return;
+		}
+
+		const winner = lobby.players.get(winnerSecret);
+		if (!winner) {
+			return;
+		}
+
+		const round = game.currentRound;
+		round.finished = true;
+
+		const durationMs = Math.max(1, Date.now() - round.startedAt);
+		const roundScore = scoreRound(durationMs);
+		game.scores.set(winnerSecret, (game.scores.get(winnerSecret) || 0) + roundScore);
+
+		game.lastResult = {
+			lobbyCode: lobby.code,
+			gameId: game.id,
+			roundNumber: game.roundNumber,
+			winner: {
+				userSecret: winner.secret,
+				username: winner.username,
+			},
+			target: round.target,
+			durationMs,
+			durationSeconds: durationMs / 1000,
+			roundScore,
+			scores: [...lobby.players.values()].map((player) => ({
+				userSecret: player.secret,
+				username: player.username,
+				score: game.scores.get(player.secret) || 0,
+			})),
+		};
+
+		this.#broadcastToLobby(lobby, "round_result", game.lastResult);
+
+		if (game.roundNumber >= game.totalRounds) {
+			game.phase = "finished";
+			const finalScores = [...lobby.players.values()]
+				.map((player) => ({
+					userSecret: player.secret,
+					username: player.username,
+					score: game.scores.get(player.secret) || 0,
+				}))
+				.sort((left, right) => right.score - left.score || left.username.localeCompare(right.username));
+			const topScore = finalScores[0]?.score ?? 0;
+			const topScorers = finalScores.filter((entry) => entry.score === topScore);
+
+			game.finalResult = {
+				gameId: game.id,
+				lobbyCode: lobby.code,
+				finishedAt: new Date().toISOString(),
+				scores: finalScores,
+				winner: topScorers.length === 1 ? topScorers[0] : null,
+			};
+
+			this.#broadcastToLobby(lobby, "game_over", game.finalResult);
+			return;
+		}
+
+		game.roundNumber += 1;
+		game.currentRound = this.#newRound(game.roundNumber);
+		for (const player of lobby.players.values()) {
+			game.roundValues.set(player.secret, 0);
+			game.selections.set(player.secret, new Set());
+		}
+
+		this.#broadcastGameState(lobby);
+	}
+
 	#closeLobby(lobby, reason) {
 		if (!lobby || lobby.closed) {
 			return;
@@ -130,23 +320,17 @@ class GameServer {
 		for (const player of lobby.players.values()) {
 			this.playersBySecret.delete(player.secret);
 			if (player.client) {
-				activeClients.push({ client: player.client });
+				activeClients.push(player.client);
 				player.client = null;
 			}
 		}
 
-		for (const entry of activeClients) {
-			entry.client.send({
+		for (const client of activeClients) {
+			client.send({
 				event: "lobby_closed",
-				data: {
-					lobbyCode: lobby.code,
-					reason,
-				},
+				data: { lobbyCode: lobby.code, reason },
 			});
-		}
-
-		for (const entry of activeClients) {
-			entry.client.close();
+			client.close();
 		}
 	}
 
@@ -171,11 +355,26 @@ class GameServer {
 		}
 
 		lobby.players.delete(secret);
-		this.#broadcastToLobby(lobby, "player_left", {
-			lobbyCode: lobby.code,
-			username: player.username,
-			reason,
-		});
+		if (lobby.game) {
+			lobby.game.roundValues.delete(secret);
+			lobby.game.selections.delete(secret);
+			lobby.game.scores.delete(secret);
+		}
+
+		this.#broadcastToLobby(
+			lobby,
+			"player_left",
+			{
+				lobbyCode: lobby.code,
+				username: player.username,
+				reason,
+			},
+			secret,
+		);
+		this.#broadcastLobbyState(lobby);
+		if (lobby.game) {
+			this.#broadcastGameState(lobby);
+		}
 
 		if (lobby.players.size === 0) {
 			this.lobbies.delete(lobby.code);
@@ -202,6 +401,7 @@ class GameServer {
 			ownerUsername: username,
 			players: new Map(),
 			closed: false,
+			game: null,
 		};
 
 		const player = {
@@ -232,9 +432,7 @@ class GameServer {
 		}
 
 		const username = normalizeText(getField(payload, "USERNAME", "username"));
-		const lobbyCode = normalizeText(
-			getField(payload, "LOBBY_CODE", "lobbyCode"),
-		).toUpperCase();
+		const lobbyCode = normalizeText(getField(payload, "LOBBY_CODE", "lobbyCode")).toUpperCase();
 
 		if (!username) {
 			this.#sendJsonError(ctx, 400, "USERNAME is required.");
@@ -252,6 +450,16 @@ class GameServer {
 			return;
 		}
 
+		if (lobby.game?.phase === "finished") {
+			this.#sendJsonError(ctx, 409, "Lobby has finished its game.");
+			return;
+		}
+
+		if (lobby.players.size >= 2) {
+			this.#sendJsonError(ctx, 409, "Lobby is full.");
+			return;
+		}
+
 		const userSecret = this.#newSecret();
 		const player = {
 			lobbyCode,
@@ -264,6 +472,13 @@ class GameServer {
 		lobby.players.set(userSecret, player);
 		this.playersBySecret.set(userSecret, player);
 
+		if (lobby.game) {
+			this.#ensureGameState(lobby);
+			lobby.game.roundValues.set(userSecret, 0);
+			lobby.game.selections.set(userSecret, new Set());
+			lobby.game.scores.set(userSecret, 0);
+		}
+
 		ctx.json(200, {
 			lobbyCode,
 			userSecret,
@@ -271,6 +486,13 @@ class GameServer {
 			isOwner: false,
 			lobby: this.#serializeLobby(lobby),
 		});
+
+		if (lobby.players.size === 2 && !lobby.game) {
+			this.#startGame(lobby);
+			this.#broadcastLobbyState(lobby);
+			this.#broadcastToLobby(lobby, "game_started", this.#serializeGame(lobby));
+			this.#broadcastGameState(lobby);
+		}
 	}
 
 	async #listLobbies(ctx) {
@@ -289,9 +511,7 @@ class GameServer {
 			return;
 		}
 
-		const userSecret = normalizeText(
-			getField(payload, "USER_SECRET", "userSecret"),
-		);
+		const userSecret = normalizeText(getField(payload, "USER_SECRET", "userSecret"));
 		const message = getField(payload, "MESSAGE", "message");
 
 		if (!userSecret) {
@@ -330,6 +550,78 @@ class GameServer {
 		});
 	}
 
+	async #chooseOption(ctx) {
+		const payload = await this.#readJsonObject(ctx);
+		if (!payload) {
+			return;
+		}
+
+		const userSecret = normalizeText(getField(payload, "USER_SECRET", "userSecret"));
+		const optionId = normalizeText(getField(payload, "OPTION_ID", "optionId"));
+
+		if (!userSecret) {
+			this.#sendJsonError(ctx, 400, "USER_SECRET is required.");
+			return;
+		}
+
+		if (!optionId) {
+			this.#sendJsonError(ctx, 400, "OPTION_ID is required.");
+			return;
+		}
+
+		const player = this.playersBySecret.get(userSecret);
+		if (!player) {
+			this.#sendJsonError(ctx, 401, "Invalid user secret.");
+			return;
+		}
+
+		const lobby = this.lobbies.get(player.lobbyCode);
+		if (!lobby || lobby.closed) {
+			this.#sendJsonError(ctx, 404, "Lobby not found.");
+			return;
+		}
+
+		const game = lobby.game;
+		if (!game || game.phase !== "playing" || !game.currentRound) {
+			this.#sendJsonError(ctx, 409, "Game is not active.");
+			return;
+		}
+
+		const round = game.currentRound;
+		if (round.finished) {
+			this.#sendJsonError(ctx, 409, "Round has already finished.");
+			return;
+		}
+
+		const option = round.options.find((entry) => entry.id === optionId);
+		if (!option) {
+			this.#sendJsonError(ctx, 404, "Option not found.");
+			return;
+		}
+
+		const selections = game.selections.get(userSecret) || new Set();
+		if (selections.has(optionId)) {
+			ctx.json(200, { ok: true, lobbyCode: lobby.code, game: this.#serializeGame(lobby) });
+			return;
+		}
+
+		selections.add(optionId);
+		game.selections.set(userSecret, selections);
+
+		const currentValue = (game.roundValues.get(userSecret) || 0) + option.value;
+		game.roundValues.set(userSecret, currentValue);
+
+		if (currentValue === round.target) {
+			this.#finishRound(lobby, userSecret);
+		}
+
+		ctx.json(200, {
+			ok: true,
+			lobbyCode: lobby.code,
+			game: this.#serializeGame(lobby),
+		});
+	}
+
 	#connectPlayer(client, req) {
 		const requestUrl = new URL(req.url || "/", "http://localhost");
 		const params = Object.fromEntries(requestUrl.searchParams.entries());
@@ -337,10 +629,7 @@ class GameServer {
 		const userSecret = normalizeText(getField(params, "USER_SECRET", "userSecret"));
 
 		if (!lobbyCode || !userSecret) {
-			client.send({
-				event: "error",
-				data: { message: "LOBBY_CODE and USER_SECRET are required." },
-			});
+			client.send({ event: "error", data: { message: "LOBBY_CODE and USER_SECRET are required." } });
 			client.close();
 			return;
 		}
@@ -348,21 +637,19 @@ class GameServer {
 		const player = this.playersBySecret.get(userSecret);
 		const lobby = this.lobbies.get(lobbyCode);
 		if (!player || !lobby || player.lobbyCode !== lobbyCode || lobby.closed) {
-			client.send({
-				event: "error",
-				data: { message: "Lobby or user secret not found." },
-			});
+			client.send({ event: "error", data: { message: "Lobby or user secret not found." } });
 			client.close();
 			return;
 		}
 
 		player.client = client;
 		lobby.players.set(userSecret, player);
+		this.#ensureGameState(lobby);
 
-		client.send({
-			event: "lobby_state",
-			data: this.#serializeLobby(lobby),
-		});
+		client.send({ event: "lobby_state", data: this.#serializeLobby(lobby) });
+		if (lobby.game) {
+			client.send({ event: "game_state", data: this.#serializeGame(lobby) });
+		}
 
 		this.#broadcastToLobby(
 			lobby,
