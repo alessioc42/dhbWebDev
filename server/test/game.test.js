@@ -143,9 +143,66 @@ test("game starts on the second join and advances on option selection", async (t
 	assert.equal(gameState.roundNumber, 1);
 	assert.equal(gameState.totalRounds, 11);
 	assert.equal(gameState.players.length, 2);
-	assert.ok(gameState.options.length > 0);
+	assert.equal(gameState.options.length, 12);
+	assert.equal(new Set(gameState.options.map((option) => option.value)).size, 12);
 
-	for (const option of gameState.options) {
+	let hasWinningSubset = false;
+	for (let size = 3; size <= 7 && !hasWinningSubset; size += 1) {
+		const pick = [];
+		const search = (startIndex) => {
+			if (pick.length === size) {
+				const sum = pick.reduce((total, option) => total + option.value, 0);
+				if (sum === gameState.target) {
+					hasWinningSubset = true;
+				}
+				return;
+			}
+
+			for (let index = startIndex; index < gameState.options.length && !hasWinningSubset; index += 1) {
+				pick.push(gameState.options[index]);
+				search(index + 1);
+				pick.pop();
+			}
+		};
+
+		search(0);
+	}
+	assert.equal(hasWinningSubset, true);
+
+	const firstOption = gameState.options[0];
+	await ownerClient.chooseOption(created.userSecret, firstOption.id);
+	await waitFor(() => ownerEvents.some((event) => event.event === "game_state" && event.data.players[0].roundValue !== 0));
+	const afterSelect = ownerEvents.filter((event) => event.event === "game_state").at(-1)?.data;
+	assert.equal(afterSelect.players.find((player) => player.userSecret === created.userSecret).roundValue, firstOption.value);
+
+	await ownerClient.chooseOption(created.userSecret, firstOption.id);
+	await waitFor(() => ownerEvents.filter((event) => event.event === "game_state").at(-1)?.data.players.find((player) => player.userSecret === created.userSecret).roundValue === 0);
+	const afterDeselect = ownerEvents.filter((event) => event.event === "game_state").at(-1)?.data;
+	assert.equal(afterDeselect.players.find((player) => player.userSecret === created.userSecret).roundValue, 0);
+
+	const solution = [];
+	for (let size = 3; size <= 7 && solution.length === 0; size += 1) {
+		const pick = [];
+		const search = (startIndex) => {
+			if (pick.length === size) {
+				const sum = pick.reduce((total, option) => total + option.value, 0);
+				if (sum === gameState.target) {
+					solution.push(...pick);
+				}
+				return;
+			}
+
+			for (let index = startIndex; index < gameState.options.length && solution.length === 0; index += 1) {
+				pick.push(gameState.options[index]);
+				search(index + 1);
+				pick.pop();
+			}
+		};
+
+		search(0);
+	}
+
+	for (const option of solution) {
 		await ownerClient.chooseOption(created.userSecret, option.id);
 	}
 

@@ -31,6 +31,7 @@ const refs = {
 	roundResult: document.getElementById("roundResult"),
 	scoreboardList: document.getElementById("scoreboardList"),
 	optionList: document.getElementById("optionList"),
+	optionCount: document.getElementById("optionCount"),
 	leaveLobbyButton: document.getElementById("leaveLobbyButton"),
 	openHighscoresFromGame: document.getElementById("openHighscoresFromGame"),
 	highscoreStatus: document.getElementById("highscoreStatus"),
@@ -206,7 +207,7 @@ function renderGameView() {
 	refs.gameLobbyCode.textContent = state.session ? `Lobby code: ${state.session.lobbyCode}` : "No lobby connected.";
 	refs.gameRoundInfo.textContent =
 		gameState && gameState.phase === "playing" && gameState.target !== null
-			? `Round ${gameState.roundNumber} of ${gameState.totalRounds}. Target: ${gameState.target}. Your value: ${formatScore(localPlayer?.roundValue)}.`
+			? `Round ${gameState.roundNumber} of ${gameState.totalRounds}. Target number: ${gameState.target}. Your value: ${formatScore(localPlayer?.roundValue)}.`
 			: "Waiting for the second player.";
 
 	refs.scoreboardList.innerHTML = "";
@@ -217,6 +218,18 @@ function renderGameView() {
 	}
 
 	refs.optionList.innerHTML = "";
+
+	// ensure options wrap so all buttons are visible
+	refs.optionList.style.display = "flex";
+	refs.optionList.style.flexWrap = "wrap";
+	refs.optionList.style.gap = "6px";
+
+	// show a simple count and values for debugging / visibility
+	try {
+		refs.optionCount.textContent = `Options: ${gameState.options.length} — ${gameState.options.map(o => o.value).join(", ")}`;
+	} catch (e) {
+		// ignore if refs.optionCount isn't available
+	}
 	const canChoose = Boolean(
 		gameState &&
 		gameState.phase === "playing" &&
@@ -233,16 +246,20 @@ function renderGameView() {
 	}
 
 	for (const option of gameState.options) {
+		const isSelected = Boolean(localPlayer?.selectedOptionIds.includes(option.id));
 		const button = document.createElement("button");
 		button.type = "button";
-		button.textContent = String(option.value);
-		button.disabled = localPlayer.selectedOptionIds.includes(option.id);
+		button.textContent = `${option.value}${isSelected ? " (selected)" : ""}`;
+		button.setAttribute("aria-pressed", String(isSelected));
 		button.addEventListener("click", async () => {
-			button.disabled = true;
 			try {
-				await client.chooseOption(state.session.userSecret, option.id);
+				const result = await client.chooseOption(state.session.userSecret, option.id);
+				if (result?.game) {
+					state.game = result.game;
+					state.lobby = { ...(state.lobby || {}), game: result.game };
+				}
+				renderApp();
 			} catch (error) {
-				button.disabled = false;
 				setFeedback("game", error.message);
 			}
 		});

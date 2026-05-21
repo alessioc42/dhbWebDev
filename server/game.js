@@ -74,22 +74,45 @@ class GameServer {
 
 	#newRound(roundNumber) {
 		for (;;) {
-			const optionCount = 5 + randomInt(2);
-			const values = [];
+			const winningCount = randomInt(3, 8);
+			const winningValues = [];
+			const usedValues = new Set();
 			let target = 0;
 
-			for (let index = 0; index < optionCount; index += 1) {
+			while (winningValues.length < winningCount) {
 				let value = 0;
 				while (value === 0) {
-					value = randomInt(-25, 26);
+					value = randomInt(-15, 16);
 				}
 
-				values.push(value);
+				if (usedValues.has(value)) {
+					continue;
+				}
+
+				winningValues.push(value);
+				usedValues.add(value);
 				target += value;
 			}
 
 			if (target < -100 || target > 100) {
 				continue;
+			}
+
+			const distractorValues = [];
+			while (distractorValues.length < 12 - winningCount) {
+				const value = randomInt(-100, 101);
+				if (value === 0 || value === target || usedValues.has(value)) {
+					continue;
+				}
+
+				usedValues.add(value);
+				distractorValues.push(value);
+			}
+
+			const values = [...winningValues, ...distractorValues];
+			for (let index = values.length - 1; index > 0; index -= 1) {
+				const swapIndex = randomInt(index + 1);
+				[values[index], values[swapIndex]] = [values[swapIndex], values[index]];
 			}
 
 			return {
@@ -102,6 +125,7 @@ class GameServer {
 					id: randomUUID(),
 					value,
 				})),
+				winningCount,
 			};
 		}
 	}
@@ -600,19 +624,21 @@ class GameServer {
 		}
 
 		const selections = game.selections.get(userSecret) || new Set();
-		if (selections.has(optionId)) {
-			ctx.json(200, { ok: true, lobbyCode: lobby.code, game: this.#serializeGame(lobby) });
-			return;
+		const wasSelected = selections.has(optionId);
+		if (wasSelected) {
+			selections.delete(optionId);
+		} else {
+			selections.add(optionId);
 		}
-
-		selections.add(optionId);
 		game.selections.set(userSecret, selections);
 
-		const currentValue = (game.roundValues.get(userSecret) || 0) + option.value;
+		const currentValue = (game.roundValues.get(userSecret) || 0) + (wasSelected ? -option.value : option.value);
 		game.roundValues.set(userSecret, currentValue);
 
-		if (currentValue === round.target) {
+		if (!wasSelected && currentValue === round.target) {
 			this.#finishRound(lobby, userSecret);
+		} else {
+			this.#broadcastGameState(lobby);
 		}
 
 		ctx.json(200, {
