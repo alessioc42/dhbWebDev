@@ -2,14 +2,69 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>math-game</title>
+    <title>Math Duel</title>
   </head>
   <body>
-    <div id="app">
-      <h1>Math Game</h1>
-    </div>
+    <main id="app">
+      <section id="lobbyScreen" data-screen="lobby">
+        <h1>Math Duel</h1>
+        <p id="lobbyStatus">Ready.</p>
+
+        <form id="createLobbyForm">
+          <h2>Create lobby</h2>
+          <label>
+            Name
+            <input id="createUsernameInput" name="username" autocomplete="nickname" />
+          </label>
+          <button type="submit">Create lobby</button>
+        </form>
+
+        <form id="joinLobbyForm">
+          <h2>Join lobby</h2>
+          <label>
+            Name
+            <input id="joinUsernameInput" name="username" autocomplete="nickname" />
+          </label>
+          <label>
+            Code
+            <input id="joinCodeInput" name="code" maxlength="4" />
+          </label>
+          <button type="submit">Join lobby</button>
+        </form>
+
+        <button id="openHighscoresFromLobby" type="button">Highscores</button>
+      </section>
+
+      <section id="gameScreen" data-screen="game" hidden>
+        <h1>Game</h1>
+        <p id="gameLobbyCode">No lobby connected.</p>
+        <p id="gameRoundInfo">Waiting.</p>
+        <p id="gameStatus">Idle.</p>
+        <p id="roundResult"></p>
+
+        <h2>Scoreboard</h2>
+        <ul id="scoreboardList"></ul>
+
+        <h2>Options</h2>
+        <p id="optionCount" aria-live="polite"></p>
+        <div id="optionList"></div>
+
+        <button id="leaveLobbyButton" type="button">Leave lobby</button>
+        <button id="openHighscoresFromGame" type="button">Highscores</button>
+      </section>
+
+      <section id="highscoreScreen" data-screen="highscores" hidden>
+        <h1>Highscores</h1>
+        <p id="highscoreStatus">Stored games</p>
+        <ol id="highscoreList"></ol>
+        <button id="backToLobbyButton" type="button">Back to lobby</button>
+      </section>
+    </main>
+
+    <script>
+      window.GAME_SERVER_HOST = window.GAME_SERVER_HOST || "http://127.0.0.1:3000";
+    </script>
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>
