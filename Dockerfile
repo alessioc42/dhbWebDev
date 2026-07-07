@@ -2,7 +2,9 @@ FROM gcr.io/distroless/nodejs26-debian13
 
 WORKDIR /app
 
-COPY server/main.js server/game.js server/http_sse.js ./
+COPY server/main.js server/game.js server/http_sse.js server/static.js ./
+COPY index.html ./
+COPY src ./src
 
 ENV NODE_ENV=production
 ENV HOST=0.0.0.0

@@ -137,7 +137,7 @@
     </main>
 
     <script>
-      window.GAME_SERVER_HOST = window.GAME_SERVER_HOST || "http://127.0.0.1:3000";
+      window.GAME_SERVER_HOST = window.GAME_SERVER_HOST || window.location.origin;
     </script>
     <script type="module" src="/src/main.js"></script>
   </body>

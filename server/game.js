@@ -1,6 +1,7 @@
 import { randomInt, randomUUID } from "node:crypto";
 
 import { SSECapableServer } from "./http_sse.js";
+import { createStaticFileHandler, resolveStaticRoot } from "./static.js";
 
 const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 const TOTAL_ROUNDS = 11;
@@ -29,8 +30,19 @@ function scoreRound(durationMs) {
 	return Math.round((ROUND_SCORE_BASE / durationSeconds) * 100) / 100;
 }
 
+function createDefaultServer() {
+	const staticRoot = resolveStaticRoot(import.meta.url);
+	if (!staticRoot) {
+		return new SSECapableServer();
+	}
+
+	return new SSECapableServer({
+		notFoundHandler: createStaticFileHandler(staticRoot),
+	});
+}
+
 class GameServer {
-	constructor(server = new SSECapableServer()) {
+	constructor(server = createDefaultServer()) {
 		this.server = server;
 		this.lobbies = new Map();
 		this.playersBySecret = new Map();

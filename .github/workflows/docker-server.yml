@@ -6,6 +6,8 @@ on:
       - main
     paths:
       - "server/**"
+      - "index.html"
+      - "src/**"
       - "Dockerfile"
       - ".dockerignore"
       - ".github/workflows/docker-server.yml"
