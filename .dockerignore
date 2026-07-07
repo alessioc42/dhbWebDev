@@ -1,0 +1,9 @@
+.git
+.github
+.gitignore
+.gitattributes
+README.md
+index.html
+public
+src
+server/test
