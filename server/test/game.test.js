@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import { GameServer } from "../game.js";
-import { GameClient } from "../../src/game-client.js";
+import { GameClient } from "../../src/onlineGame/network/game-client.js";
 
 function wait(ms) {
 	return new Promise((resolve) => {
@@ -232,6 +232,133 @@ test("game starts on the second join and advances on option selection", async (t
 	)?.data;
 	assert.equal(nextGameState.roundNumber, 2);
 	assert.equal(nextGameState.players.length, 2);
+
+	guestStream.close();
+	ownerStream.close();
+});
+
+function findOvershootSubset(options, target) {
+	for (let size = 3; size <= options.length; size += 1) {
+		const pick = [];
+		const search = (startIndex) => {
+			if (pick.length === size) {
+				const sum = pick.reduce((total, option) => total + option.value, 0);
+				const removable = pick.find((option) => sum - option.value === target);
+				if (removable) {
+					return { selected: [...pick], remove: removable };
+				}
+				return null;
+			}
+
+			for (let index = startIndex; index < options.length; index += 1) {
+				pick.push(options[index]);
+				const result = search(index + 1);
+				if (result) {
+					return result;
+				}
+				pick.pop();
+			}
+
+			return null;
+		};
+
+		const result = search(0);
+		if (result) {
+			return result;
+		}
+	}
+
+	return null;
+}
+
+function orderOptionsForOvershoot(selected, remove, target) {
+	const others = selected.filter((option) => option.id !== remove.id);
+	const ordered = [];
+
+	if (others.length > 0) {
+		ordered.push(others[0]);
+	}
+	ordered.push(remove);
+	for (let index = 1; index < others.length; index += 1) {
+		ordered.push(others[index]);
+	}
+
+	let runningTotal = 0;
+	for (const option of ordered) {
+		runningTotal += option.value;
+		assert.notEqual(runningTotal, target, "test setup must not hit the target before overshooting");
+	}
+
+	return ordered;
+}
+
+test("round finishes when deselecting down to the target", async (t) => {
+	const server = new GameServer();
+	const address = await server.listen(0, "127.0.0.1");
+	const baseUrl = `http://127.0.0.1:${address.port}`;
+	const ownerClient = new GameClient(baseUrl);
+	const guestClient = new GameClient(baseUrl);
+
+	t.after(async () => {
+		await server.close();
+	});
+
+	const created = await ownerClient.createLobby("Alice");
+	const joined = await guestClient.joinLobby("Bob", created.lobbyCode);
+
+	const ownerEvents = [];
+	const guestEvents = [];
+	const ownerStream = await ownerClient.connectLobby({
+		lobbyCode: created.lobbyCode,
+		userSecret: created.userSecret,
+		onEvent(event) {
+			ownerEvents.push(event);
+		},
+	});
+	const guestStream = await guestClient.connectLobby({
+		lobbyCode: joined.lobbyCode,
+		userSecret: joined.userSecret,
+		onEvent(event) {
+			guestEvents.push(event);
+		},
+	});
+
+	await waitFor(
+		() =>
+			ownerEvents.some((event) => event.event === "game_state") &&
+			guestEvents.some((event) => event.event === "game_state"),
+	);
+
+	const gameState = ownerEvents.find((event) => event.event === "game_state")?.data;
+	const overshoot = findOvershootSubset(gameState.options, gameState.target);
+	assert.ok(overshoot, "expected a subset that can reach the target by deselecting one option");
+
+	const selectionOrder = orderOptionsForOvershoot(
+		overshoot.selected,
+		overshoot.remove,
+		gameState.target,
+	);
+
+	for (const option of selectionOrder) {
+		await ownerClient.chooseOption(created.userSecret, option.id);
+	}
+
+	const afterOvershoot = ownerEvents.filter((event) => event.event === "game_state").at(-1)?.data;
+	const ownerAfterOvershoot = afterOvershoot.players.find((player) => player.userSecret === created.userSecret);
+	assert.equal(ownerAfterOvershoot.roundValue, gameState.target + overshoot.remove.value);
+
+	await ownerClient.chooseOption(created.userSecret, overshoot.remove.id);
+
+	await waitFor(
+		() =>
+			ownerEvents.some((event) => event.event === "round_result") &&
+			guestEvents.some((event) => event.event === "round_result"),
+	);
+
+	const roundResult = ownerEvents.find((event) => event.event === "round_result")?.data;
+	assert.equal(roundResult.roundNumber, 1);
+	assert.equal(roundResult.winner.username, "Alice");
+	assert.equal(roundResult.target, gameState.target);
 
 	guestStream.close();
 	ownerStream.close();
