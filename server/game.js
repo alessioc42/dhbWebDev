@@ -635,7 +635,7 @@ class GameServer {
 		const currentValue = (game.roundValues.get(userSecret) || 0) + (wasSelected ? -option.value : option.value);
 		game.roundValues.set(userSecret, currentValue);
 
-		if (!wasSelected && currentValue === round.target) {
+		if (currentValue === round.target) {
 			this.#finishRound(lobby, userSecret);
 		} else {
 			this.#broadcastGameState(lobby);
