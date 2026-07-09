@@ -17,6 +17,13 @@ const solutionField = document.querySelector("#solutionInput");
 const form = document.querySelector("#form");
 
 const restartBtn = document.querySelector("#restartBtn");
+const finalNameSpan = document.querySelector("#finalName");
+const finalScoreSpan = document.querySelector("#finalScore");
+const highScoreSpan = document.querySelector("#highScore");
+
+const HIGHSCORE_KEY = "zehnerUebergang_highScore";
+const USERNAME_KEY = "zehnerUebergang_userName";
+const MAX_TIME = 60;
 
 const game = {
     num1: 0,
@@ -24,8 +31,8 @@ const game = {
     timer: null,
     score: 0,
     solutionChecked: false,
-    username: String(localStorage.getItem("username")) || "",
-    highScore: Number(localStorage.getItem("highScore")) || 0
+    userName: String(localStorage.getItem(USERNAME_KEY)) || "",
+    highScore: Number(localStorage.getItem(HIGHSCORE_KEY)) || 0
 };  //Variablen und Daten
 
 /*
@@ -68,7 +75,6 @@ function solutionCorrect() {
 
 function changeScoreBy(x) { //score um x ändern und auf dem Screen aktualisieren
     game.score += x;
-    sessionStorage.setItem("score", game.score);
     scoreSpan.textContent = game.score;
 }
 
@@ -78,14 +84,13 @@ function gameOver() {
     solutionField.disabled = true;
 
     if (game.highScore < game.score) {
-        localStorage.setItem("highScore", game.score);
+        localStorage.setItem(HIGHSCORE_KEY, game.score);
         game.highScore = game.score;
         //New Highscore (implement)
     }
-
-    document.querySelector("#finalName").textContent = game.username; //Username und Spielscore anzeigen
-    document.querySelector("#finalScore").textContent = game.score;
-    document.querySelector("#highScore").textContent = game.highScore;
+    finalNameSpan.textContent = game.userName; //Username und Scores anzeigen
+    finalScoreSpan.textContent = game.score;
+    highScoreSpan.textContent = game.highScore;
 
     location.hash = "#ende";    //auf gameOver Seite wechseln
 }
@@ -98,14 +103,14 @@ function startGame() {
     checkBtn.disabled = false;
     solutionField.disabled = false;
 
-    nameSpan.textContent = game.username;
+    nameSpan.textContent = game.userName;
     genNewTask();
     startTimer();
 }
 
 function startTimer() {
     clearInterval(game.timer);
-    let timeLeft = 60;
+    let timeLeft = MAX_TIME;
     timeSpan.textContent = timeLeft;
 
     game.timer = setInterval(() => {   //Sekundenweise Zeit ausgeben
@@ -135,7 +140,7 @@ function renderPage(){  //routing
             startPage.style.display = "none";
             gamePage.style.display = "block";
             gameOverPage.style.display = "none";
-            nameSpan.textContent = localStorage.getItem("username") || "";
+            nameSpan.textContent = localStorage.getItem(USERNAME_KEY) || "";
             scoreSpan.textContent = 0;
             break;
         case "#ende":
@@ -154,22 +159,24 @@ function renderPage(){  //routing
     Event-Listener und Startcode
 */
 
-window.addEventListener("hashchange", renderPage);
-window.addEventListener("load", renderPage);
+addEventListener("DOMContentLoaded", (event) => {   //erst wenn html geladen und skript ausgeführt wurde
+    window.addEventListener("hashchange", renderPage);
+    window.addEventListener("load", renderPage);
 
-newTaskBtn.addEventListener("click", genNewTask);
+    newTaskBtn.addEventListener("click", genNewTask);
 
-form.addEventListener("submit", (event) => {
-    event.preventDefault();
-    checkSolution();
-});   //verhindert das direkte löschen der antwort nach dem kontrollieren/abgeben
+    form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        checkSolution();
+    });   //verhindert das direkte löschen der antwort nach dem kontrollieren/abgeben
 
-startBtn.addEventListener("click", () => {
-    game.username = String(nameInput.value.trim()) || "Anonym";
-    localStorage.setItem("username", game.username);
-    location.hash = "#spiel";
-    genNewTask();   //erste Aufgabe generieren
-    startTimer();
-}); //bei Start den Username speichern
+    startBtn.addEventListener("click", () => {
+        game.userName = String(nameInput.value.trim()) || "Anonym";
+        localStorage.setItem(USERNAME_KEY, game.userName);
+        location.hash = "#spiel";
+        genNewTask();   //erste Aufgabe generieren
+        startTimer();
+    }); //bei Start: Username speichern, routehash setzen, neue Aufgabe generieren und Timer starten
 
-restartBtn.addEventListener("click", startGame);
+    restartBtn.addEventListener("click", startGame);
+});
