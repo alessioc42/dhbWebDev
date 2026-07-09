@@ -7,6 +7,7 @@ const startBtn = document.querySelector("#startBtn");
 
 const nameSpan = document.querySelector("#nameSpan");   //Scoreboardelemente
 const scoreSpan = document.querySelector("#pointsSpan");
+const timeSpan = document.querySelector("#timeSpan");
 
 const newTaskBtn = document.querySelector("#newTaskBtn");   //Aufgaben-/Formularelemente
 const checkBtn = document.querySelector("#checkBtn");
@@ -17,21 +18,27 @@ const form = document.querySelector("#form");
 
 const restartBtn = document.querySelector("#restartBtn");
 
-let num1, num2, gameTimer, score = 0, solutionChecked = false; //Variablen und Daten
-let username = String(localStorage.getItem("username")) || "";
-let highScore = Number(localStorage.getItem("highScore")) || 0;
+const game = {
+    num1: 0,
+    num2: 0,
+    timer: null,
+    score: 0,
+    solutionChecked: false,
+    username: String(localStorage.getItem("username")) || "",
+    highScore: Number(localStorage.getItem("highScore")) || 0
+};  //Variablen und Daten
 
 /*
     Funktionen
 */
 
 function genNewTask() { //generiert neue Zahlen und zeigt diese an
-    solutionChecked = false;    //wichtig für checkSolution()
-    num1 = Math.floor(Math.random()*100)+1;
-    num2 = Math.floor(Math.random()*(10 - genZehnerUebergang(num1) + 1)) + genZehnerUebergang(num1);
+    game.solutionChecked = false;    //wichtig für checkSolution()
+    game.num1 = Math.floor(Math.random()*100)+1;
+    game.num2 = Math.floor(Math.random()*(10 - genZehnerUebergang(game.num1) + 1)) + genZehnerUebergang(game.num1);
 
-    num1Span.textContent = num1;
-    num2Span.textContent = num2;
+    num1Span.textContent = game.num1;
+    num2Span.textContent = game.num2;
 
     solutionField.style.backgroundColor = 'white';   //Antwortfeld wird wieder weiß gestellt
     solutionField.value = "";
@@ -46,23 +53,23 @@ function checkSolution() {  //überprüft die Lösung
     if (solutionCorrect()) {
         solutionField.style.backgroundColor = 'green';
         newTaskBtn.focus();
-        !solutionChecked ? changeScoreBy(1) : null; //verhindert mehrfaches vergeben von Punkten pro Aufgabe
+        if (!game.solutionChecked) changeScoreBy(1);   //verhindert mehrfaches vergeben von Punkten pro Aufgabe
     }else{
         solutionField.style.backgroundColor = 'red';
         solutionField.focus();
-        !solutionChecked ? changeScoreBy(-1) : null;  //verhindert mehrfaches abziehen von Punkten pro Aufgabe
+        if (!game.solutionChecked) changeScoreBy(-1);  //verhindert mehrfaches abziehen von Punkten pro Aufgabe
     }
-    solutionChecked = true;
+    game.solutionChecked = true;
 }
 
 function solutionCorrect() {
-    return Number(num1) + Number(num2) == solutionField.value;
+    return game.num1 + game.num2 === Number(solutionField.value);
 }
 
 function changeScoreBy(x) { //score um x ändern und auf dem Screen aktualisieren
-    score = score+x;
-    sessionStorage.setItem("score", score);
-    scoreSpan.textContent = score;
+    game.score += x;
+    sessionStorage.setItem("score", game.score);
+    scoreSpan.textContent = game.score;
 }
 
 function gameOver() {
@@ -70,35 +77,46 @@ function gameOver() {
     checkBtn.disabled = true;
     solutionField.disabled = true;
 
-    if (highScore < score) {
-        localStorage.setItem("highScore", score);
-        highScore = score;
+    if (game.highScore < game.score) {
+        localStorage.setItem("highScore", game.score);
+        game.highScore = game.score;
         //New Highscore (implement)
     }
 
-    document.querySelector("#finalName").textContent = username; //Username und Spielscore anzeigen
-    document.querySelector("#finalScore").textContent = score;
-    document.querySelector("#highScore").textContent = highScore;
+    document.querySelector("#finalName").textContent = game.username; //Username und Spielscore anzeigen
+    document.querySelector("#finalScore").textContent = game.score;
+    document.querySelector("#highScore").textContent = game.highScore;
 
     location.hash = "#ende";    //auf gameOver Seite wechseln
 }
 
 function startGame() {
-    score = 0;
+    game.score = 0;
     location.hash = "#spiel";
 
     newTaskBtn.disabled = false;
     checkBtn.disabled = false;
     solutionField.disabled = false;
 
-    nameSpan.textContent = username;
+    nameSpan.textContent = game.username;
     genNewTask();
     startTimer();
 }
 
 function startTimer() {
-    clearTimeout(gameTimer);
-    gameTimer = setTimeout(gameOver,60000);
+    clearInterval(game.timer);
+    let timeLeft = 60;
+    timeSpan.textContent = timeLeft;
+
+    game.timer = setInterval(() => {   //Sekundenweise Zeit ausgeben
+       timeLeft--;
+       timeSpan.textContent = timeLeft;
+       
+       if(timeLeft==0) {    //wenn Timer 0 erreicht clearen und Spiel beenden
+        clearInterval(game.timer);
+        gameOver();
+       }
+    }, 1000);
 }
 
 function renderPage(){  //routing
@@ -147,8 +165,8 @@ form.addEventListener("submit", (event) => {
 });   //verhindert das direkte löschen der antwort nach dem kontrollieren/abgeben
 
 startBtn.addEventListener("click", () => {
-    username = String(nameInput.value.trim()) || "Anonym";
-    localStorage.setItem("username", username);
+    game.username = String(nameInput.value.trim()) || "Anonym";
+    localStorage.setItem("username", game.username);
     location.hash = "#spiel";
     genNewTask();   //erste Aufgabe generieren
     startTimer();
