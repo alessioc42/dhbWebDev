@@ -25,6 +25,10 @@ const HIGHSCORE_KEY = "zehnerUebergang_highScore";
 const USERNAME_KEY = "zehnerUebergang_userName";
 const MAX_TIME = 60;
 
+const audio = new Audio("./sounds/pling.mp3");
+audio.preload = "auto";
+audio.volume = 0.5;
+
 const game = {
     num1: 0,
     num2: 0,
@@ -50,32 +54,31 @@ function genNewTask() { //generiert neue Zahlen und zeigt diese an
     solutionField.style.backgroundColor = 'white';   //Antwortfeld wird wieder weiß gestellt
     solutionField.value = "";
     solutionField.focus();
+    game.solutionChecked = false;
 }
 
 function genZehnerUebergang(number) {   //generiert eine zweite Zahl mit der number addiert einen Zehnerübergang erzeugt
     return (10 - (number % 10));
 }
 
-function checkSolution() {  //überprüft die Lösung
+function checkSolution() {
     if (solutionCorrect()) {
-        solutionField.style.backgroundColor = 'green';
-        newTaskBtn.focus();
-        if (!game.solutionChecked) changeScoreBy(1);   //verhindert mehrfaches vergeben von Punkten pro Aufgabe
+        game.score++;
+        genNewTask();
+        audio.volume = 0.5;
+        audio.play();
     }else{
-        solutionField.style.backgroundColor = 'red';
-        solutionField.focus();
-        if (!game.solutionChecked) changeScoreBy(-1);  //verhindert mehrfaches abziehen von Punkten pro Aufgabe
+        solutionField.style.backgroundColor = "#fd4a4a91";
+        if (!game.solutionChecked) game.score--;
+        game.solutionChecked = true;
     }
-    game.solutionChecked = true;
+    scoreSpan.textContent = game.score;
+    solutionField.value = "";
+    solutionField.focus();
 }
 
 function solutionCorrect() {
     return game.num1 + game.num2 === Number(solutionField.value);
-}
-
-function changeScoreBy(x) { //score um x ändern und auf dem Screen aktualisieren
-    game.score += x;
-    scoreSpan.textContent = game.score;
 }
 
 function gameOver() {
@@ -155,6 +158,7 @@ function renderPage(){  //routing
             gameOverPage.style.display = "none";
             nameSpan.textContent = localStorage.getItem(USERNAME_KEY) || "";
             scoreSpan.textContent = 0;
+            solutionInput.focus();
             break;
         case "#ende":
             startPage.style.display = "none";
@@ -174,7 +178,10 @@ function renderPage(){  //routing
 
 addEventListener("DOMContentLoaded", (event) => {   //erst wenn html geladen und skript ausgeführt wurde
     window.addEventListener("hashchange", renderPage);
-    window.addEventListener("load", renderPage);
+    window.addEventListener("load", () => {
+        renderPage,
+        location.hash = "#start";
+    });
 
     newTaskBtn.addEventListener("click", genNewTask);
 

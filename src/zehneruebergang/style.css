@@ -9,11 +9,9 @@ body{ /* allgemeine Seiteneinstellungen */
     display: none;
 }
 
-#nameSpan{
-    color: #0984e3;
-}
-
-#pointsSpan{
+#nameSpan,
+#pointsSpan,
+#timeSpan{
     color: #0984e3;
 }
 
@@ -118,7 +116,7 @@ button{ /* Design aller Buttons */
     font-family: inherit;
 
     color: white;
-    background: #ff7675;
+    background: #0e49fb;
 
     border: none;
     border-radius: 15px;
@@ -131,7 +129,7 @@ button{ /* Design aller Buttons */
 }
 
 button:hover{   /*Farbe und Position leicht verändern während hovern*/
-    background: #e84393;
+    background: rgb(87, 126, 243);
     transform: translateY(-2px);
 }
 
