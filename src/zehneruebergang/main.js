@@ -32,7 +32,7 @@ const game = {
     score: 0,
     solutionChecked: false,
     userName: String(localStorage.getItem(USERNAME_KEY)) || "",
-    highScore: Number(localStorage.getItem(HIGHSCORE_KEY)) || 0
+    highScore: JSON.parse(localStorage.getItem(HIGHSCORE_KEY) || '{"score":0}').score
 };  //Variablen und Daten
 
 /*
@@ -82,15 +82,22 @@ function gameOver() {
     newTaskBtn.disabled = true;
     checkBtn.disabled = true;
     solutionField.disabled = true;
+    let highScoreName = game.userName;
 
     if (game.highScore < game.score) {
-        localStorage.setItem(HIGHSCORE_KEY, game.score);
+        const highScorePair = {
+            score: game.score,
+            userName: game.userName
+        };
+        localStorage.setItem(HIGHSCORE_KEY, JSON.stringify(highScorePair));
         game.highScore = game.score;
-        //New Highscore (implement)
+        //eventuell new Highscore Animation
+    }else{
+        highScoreName = JSON.parse(localStorage.getItem(HIGHSCORE_KEY)).userName;
     }
     finalNameSpan.textContent = game.userName; //Username und Scores anzeigen
     finalScoreSpan.textContent = game.score;
-    highScoreSpan.textContent = game.highScore;
+    highScoreSpan.textContent = game.highScore + " von " + highScoreName;
 
     location.hash = "#ende";    //auf gameOver Seite wechseln
 }
@@ -135,6 +142,12 @@ function renderPage(){  //routing
             startPage.style.display = "block";
             gamePage.style.display = "none";
             gameOverPage.style.display = "none";
+            if (!localStorage.getItem(USERNAME_KEY)) {
+                nameInput.focus();
+            }else{
+                nameInput.value = localStorage.getItem(USERNAME_KEY);
+                startBtn.focus();
+            }
             break;
         case "#spiel":
             startPage.style.display = "none";
