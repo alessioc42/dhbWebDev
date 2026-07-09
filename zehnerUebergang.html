@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="de">
+    <head>
+        <meta charset="utf-8" name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>10-er Übergang</title>
+        <script src="zehnerUebergangMain.js" defer></script>
+        <link rel="stylesheet" href="zehnerUebergangStylesheet.css">
+    </head>
+
+    <body>
+        <section id="startPage">
+            <div class="centerScreen">               
+                <h1>Willkommen zum 10-er Übergang Spiel</h1>
+                <label>Bitte gib deinen Namen ein:</label>
+                <input class="inputField" id="nameInput" maxlength="20" placeholder="Name">
+                <button id="startBtn">Spiel starten</button>
+            </div>
+        </section>
+        
+
+        <section id="gamePage">
+            <section class="scoreboard">   
+                <div id="playerName">
+                    Spieler: <span id="nameSpan"></span>
+                </div> 
+                <div id="score">
+                    Punkte: <span id="pointsSpan"></span>
+                </div>
+            </section>    
+
+            <div class="centerScreen">
+                <button type="button" id="newTaskBtn">Neue Aufgabe</button>
+                
+                <form class="form" id="form">
+                    <div class="aufgabe">
+                        <span id="num1Span"></span>
+                        <span>+</span>
+                        <span id="num2Span"></span>
+                        <span>=</span>
+                        <input class="inputField" id="solutionInput" placeholder="Ergebnis">
+                    </div>
+
+                    <button type="submit" id="checkBtn">Ergebnis überprüfen</button>
+                </form>
+            </div>
+        </section>
+
+        <section id="gameOverPage">
+            <div class="centerScreen">
+                <h1>Zeit vorbei!</h1>
+                <h2 id="finalName"></h2>
+                <h2>Punkte: <span id="finalScore"></span></h2>
+                <h2>Highscore: <span id="highScore"></span></h2>
+                <button type="submit" id="restartBtn">Nochmal spielen</button>
+            </div>
+        </section>
+    </body>
+</html> 

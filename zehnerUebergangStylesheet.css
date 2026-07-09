@@ -1,0 +1,148 @@
+body{ /* allgemeine Seiteneinstellungen */
+    margin: 0;
+    background: #6dd8ff79;
+    font-family: "Comic Sans MS", "Trebuchet MS", sans-serif;
+}
+
+#gamePage,
+#gameOverPage{
+    display: none;
+}
+
+#nameSpan{
+    color: #0984e3;
+}
+
+#pointsSpan{
+    color: #0984e3;
+}
+
+.scoreboard{
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    font-size: 2rem;
+}
+
+.centerScreen{ /* zentriert den gesamten Inhalt */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    flex-wrap: wrap; 
+    height: 100vh;
+    gap: 20px;
+}
+
+.aufgabe{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;    /*responsive für handys*/   
+    gap: 12px;
+}
+
+@media (min-width: 600px) { /*für große Bildschirme (ab 600px)*/
+    .aufgabe{
+        flex-wrap: nowrap;
+    }
+}
+
+.form{ /* ordnet die Rechenaufgabe waagerecht an */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+}
+
+.form span{ /* Aussehen aller Spans im form */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    min-width: 55px;
+    min-height: 55px;
+
+    font-size: 2rem;
+    font-weight: bold;
+    color: #2d3436;
+
+    background: #ffe66d;
+    border: 3px solid #f1c40f;
+    border-radius: 15px;
+
+    box-shadow: 0 4px 8px rgba(0,0,0,.15);
+}
+
+#num1Span{
+    background: #74b9ff;
+    border-color: #0984e3;
+    color: white;
+}
+
+#num2Span{
+    background: #55efc4;
+    border-color: #00b894;
+    color: white;
+}
+
+.inputField{
+    width: 130px;
+    height: 55px;
+
+    font-size: 1.8rem;  /*rem(root em) relative Einheit zur font-größe. 1rem=16px*/
+    text-align: center;
+
+    border: 3px solid #a29bfe;
+    border-radius: 15px;
+
+    outline: none;
+}
+@media (min-width: 600px) {
+    .inputField{
+        width: 250px;
+    }
+}
+
+#solutionInput:focus{ /* Hervorhebung beim Anklicken */
+    border-color: #6c5ce7;
+    box-shadow: 0 0 8px rgba(108,92,231,.4);
+}
+
+button{ /* Design aller Buttons */
+    padding: 12px 22px;
+
+    font-size: 1.1rem;
+    font-weight: bold;
+    font-family: inherit;
+
+    color: white;
+    background: #ff7675;
+
+    border: none;
+    border-radius: 15px;
+
+    cursor: pointer;
+
+    box-shadow: 0 4px 8px rgba(0,0,0,.2);
+
+    transition: transform .15s, background .15s;
+}
+
+button:hover{   /*Farbe und Position leicht verändern während hovern*/
+    background: #e84393;
+    transform: translateY(-2px);
+}
+
+button:active{ 
+    transform: scale(.96);  /*nur beim Klicken wegen Pseudoklasse*/
+}
+
+#newTaskBtn{
+    background: #00b894;
+}
+
+#newTaskBtn:hover{
+    background: #009d7a;
+}
