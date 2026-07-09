@@ -1,5 +1,5 @@
-export function syncOnlineRouteClass(route) {
-	document.documentElement.dataset.onlineRoute = route;
+export function syncSumGameRouteClass(route) {
+	document.documentElement.dataset.sumGameRoute = route;
 }
 
 export function syncGamePhaseClass(phase) {

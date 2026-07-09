@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import { GameServer } from "../game.js";
-import { GameClient } from "../../src/onlineGame/network/game-client.js";
+import { GameClient } from "../../src/sumGame/network/game-client.js";
 
 function wait(ms) {
 	return new Promise((resolve) => {

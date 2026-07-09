@@ -12,9 +12,10 @@
         function activeGameFromHash(hash) {
           var parts = String(hash || "#/").replace(/^#\/?/, "").split("/").filter(Boolean);
           var first = (parts[0] || "").toLowerCase();
-          if (first === "onlinegame") return "onlineGame";
+          if (first === "sumgame") return "sumGame";
+          if (first === "onlinegame") return "sumGame";
           if (first === "offlinegame") return "offlineGame";
-          if (first === "lobby" || first === "game" || first === "highscores") return "onlineGame";
+          if (first === "lobby" || first === "game" || first === "highscores") return "sumGame";
           return "home";
         }
 
@@ -40,12 +41,12 @@
           <p class="meta">Choose a game mode.</p>
         </header>
         <nav class="stack">
-          <a class="nav-link" href="#/onlineGame/lobby">Online game</a>
+          <a class="nav-link" href="#/sumGame/lobby">Calculator race</a>
           <a class="nav-link" href="#/offlineGame">Offline game</a>
         </nav>
       </section>
 
-      <div id="onlineGameApp">
+      <div id="sumGameApp">
         <section id="lobbyScreen" class="page" data-screen="lobby">
           <header class="page-head">
             <a class="btn btn-back" href="#/">Back to games</a>

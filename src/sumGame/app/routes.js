@@ -1,4 +1,4 @@
-export const GAME_ID = "onlineGame";
+export const GAME_ID = "sumGame";
 
 export function gameHash(route = "lobby") {
 	return `#/${GAME_ID}/${route}`;

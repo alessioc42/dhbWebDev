@@ -10,18 +10,18 @@ import { renderApp, setFeedback } from "./ui/render/index.js";
 let initialized = false;
 
 function onHashChange() {
-	if (parseSiteHash(window.location.hash).game !== "onlineGame") {
+	if (parseSiteHash(window.location.hash).game !== "sumGame") {
 		return;
 	}
 
 	handleHashChange();
 }
 
-export function teardownOnlineGame() {
+export function teardownSumGame() {
 	closeStream();
 }
 
-export function startOnlineGame() {
+export function startSumGame() {
 	if (initialized) {
 		handleHashChange();
 		return;

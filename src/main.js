@@ -1,7 +1,7 @@
 import { parseSiteHash, showGameScreen, syncShellFromHash } from "./site.js";
 
 let activeGame = null;
-let onlineModule;
+let sumGameModule;
 let offlineModule;
 let routeToken = 0;
 
@@ -10,7 +10,7 @@ async function routeSite() {
 	const { game, legacy, segments } = parseSiteHash(window.location.hash);
 
 	if (legacy) {
-		window.location.replace(`#/onlineGame/${segments.join("/")}`);
+		window.location.replace(`#/sumGame/${segments.join("/")}`);
 		return;
 	}
 
@@ -20,8 +20,8 @@ async function routeSite() {
 		return;
 	}
 
-	if (activeGame === "onlineGame" && game !== "onlineGame") {
-		onlineModule?.teardownOnlineGame();
+	if (activeGame === "sumGame" && game !== "sumGame") {
+		sumGameModule?.teardownSumGame();
 	}
 
 	if (activeGame === "offlineGame" && game !== "offlineGame") {
@@ -32,12 +32,12 @@ async function routeSite() {
 	activeGame = game === "home" ? null : game;
 
 	try {
-		if (game === "onlineGame") {
-			onlineModule = await import("./onlineGame/main.js");
+		if (game === "sumGame") {
+			sumGameModule = await import("./sumGame/main.js");
 			if (token !== routeToken) {
 				return;
 			}
-			onlineModule.startOnlineGame();
+			sumGameModule.startSumGame();
 			return;
 		}
 
@@ -54,11 +54,11 @@ async function routeSite() {
 		}
 
 		console.error("Failed to load game module:", error);
-		if (game === "onlineGame") {
-			showGameScreen("onlineGame");
+		if (game === "sumGame") {
+			showGameScreen("sumGame");
 			const status = document.getElementById("lobbyStatus");
 			if (status) {
-				status.textContent = `Failed to load online game: ${error.message}`;
+				status.textContent = `Failed to load Calculator race: ${error.message}`;
 			}
 			return;
 		}

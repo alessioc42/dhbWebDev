@@ -56,13 +56,13 @@ body {
 }
 
 #homeScreen,
-#onlineGameApp,
+#sumGameApp,
 #offlineGameApp {
 	display: none;
 }
 
 html[data-active-game="home"] #homeScreen,
-html[data-active-game="onlineGame"] #onlineGameApp,
+html[data-active-game="sumGame"] #sumGameApp,
 html[data-active-game="offlineGame"] #offlineGameApp {
 	display: block;
 }
@@ -546,17 +546,17 @@ html[data-game-phase="waiting"] .play-info--waiting {
 	color: var(--blue-dark);
 }
 
-html[data-online-route="highscores"] #highscoreScreen,
-html[data-online-route="game"] #gameScreen,
-html[data-online-route="lobby"] #lobbyScreen {
+html[data-sum-game-route="highscores"] #highscoreScreen,
+html[data-sum-game-route="game"] #gameScreen,
+html[data-sum-game-route="lobby"] #lobbyScreen {
 	display: block;
 }
 
-html[data-online-route="lobby"] #gameScreen,
-html[data-online-route="lobby"] #highscoreScreen,
-html[data-online-route="game"] #lobbyScreen,
-html[data-online-route="game"] #highscoreScreen,
-html[data-online-route="highscores"] #lobbyScreen,
-html[data-online-route="highscores"] #gameScreen {
+html[data-sum-game-route="lobby"] #gameScreen,
+html[data-sum-game-route="lobby"] #highscoreScreen,
+html[data-sum-game-route="game"] #lobbyScreen,
+html[data-sum-game-route="game"] #highscoreScreen,
+html[data-sum-game-route="highscores"] #lobbyScreen,
+html[data-sum-game-route="highscores"] #gameScreen {
 	display: none;
 }

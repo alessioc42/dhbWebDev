@@ -2,8 +2,12 @@ export function parseSiteHash(hash) {
 	const segments = String(hash || "#/").replace(/^#\/?/u, "").split("/").filter(Boolean);
 	const first = (segments[0] || "").toLowerCase();
 
+	if (first === "sumgame") {
+		return { game: "sumGame", segments: segments.slice(1) };
+	}
+
 	if (first === "onlinegame") {
-		return { game: "onlineGame", segments: segments.slice(1) };
+		return { game: "sumGame", segments: segments.slice(1), legacy: true };
 	}
 
 	if (first === "offlinegame") {
@@ -11,7 +15,7 @@ export function parseSiteHash(hash) {
 	}
 
 	if (first === "lobby" || first === "game" || first === "highscores") {
-		return { game: "onlineGame", segments, legacy: true };
+		return { game: "sumGame", segments, legacy: true };
 	}
 
 	return { game: "home", segments: [] };
