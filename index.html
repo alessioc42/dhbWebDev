@@ -6,7 +6,7 @@
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="/src/assets/favicon.ico" />
     <title>Math Duel</title>
-    <link rel="stylesheet" href="/src/style.css" />
+    <link rel="stylesheet" href="/src/style.css?v=3" />
     <script>
       (function () {
         function activeGameFromHash(hash) {
@@ -62,6 +62,30 @@
 
             <form id="createLobbyForm" class="panel stack">
               <h2 class="panel-title">Create lobby</h2>
+              <label class="field">
+                <div class="field-range__head">
+                  <span class="field-label">Rounds</span>
+                  <output class="field-range__value" id="roundsValue" for="roundsInput">5</output>
+                </div>
+                <input
+                  class="styled-slider"
+                  id="roundsInput"
+                  name="rounds"
+                  type="range"
+                  min="3"
+                  max="10"
+                  value="5"
+                />
+              </label>
+              <label class="field">
+                <span class="field-label">Difficulty</span>
+                <select class="field-input" id="difficultyInput" name="difficulty">
+                  <option value="easy">Easy (0–30)</option>
+                  <option value="medium" selected>Medium (0–70)</option>
+                  <option value="hard">Hard (0–100)</option>
+                  <option value="expert">Expert (−100–100)</option>
+                </select>
+              </label>
               <button class="btn btn-primary" type="submit">Create lobby</button>
             </form>
 

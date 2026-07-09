@@ -9,6 +9,20 @@ import { renderApp, setFeedback } from "./ui/render/index.js";
 
 let initialized = false;
 
+function syncRoundsLabel() {
+	if (!refs.roundsInput || !refs.roundsValue) {
+		return;
+	}
+
+	const min = Number(refs.roundsInput.min);
+	const max = Number(refs.roundsInput.max);
+	const value = Number(refs.roundsInput.value);
+	const percent = max > min ? ((value - min) / (max - min)) * 100 : 0;
+
+	refs.roundsInput.style.setProperty("--range-fill", `${percent}%`);
+	refs.roundsValue.textContent = String(value);
+}
+
 function onHashChange() {
 	if (parseSiteHash(window.location.hash).game !== "sumGame") {
 		return;
@@ -29,6 +43,8 @@ export function startSumGame() {
 
 	initialized = true;
 
+	refs.roundsInput?.addEventListener("input", syncRoundsLabel);
+	syncRoundsLabel();
 	refs.createLobbyForm.addEventListener("submit", handleCreateLobby);
 	refs.joinLobbyForm.addEventListener("submit", handleJoinLobby);
 	refs.leaveLobbyButton.addEventListener("click", leaveLobby);

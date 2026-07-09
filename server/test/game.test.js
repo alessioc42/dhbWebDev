@@ -104,6 +104,44 @@ test("creates, joins, lists and pushes through the game client", async (t) => {
 	ownerStream.close();
 });
 
+test("create lobby accepts configurable rounds and difficulty", async (t) => {
+	const server = new GameServer();
+	const address = await server.listen(0, "127.0.0.1");
+	const baseUrl = `http://127.0.0.1:${address.port}`;
+	const ownerClient = new GameClient(baseUrl);
+	const guestClient = new GameClient(baseUrl);
+
+	t.after(async () => {
+		await server.close();
+	});
+
+	const created = await ownerClient.createLobby("Alice", {
+		totalRounds: 10,
+		difficulty: "expert",
+	});
+	assert.deepEqual(created.lobby.settings, { totalRounds: 10, difficulty: "expert" });
+
+	const joined = await guestClient.joinLobby("Bob", created.lobbyCode);
+	const ownerEvents = [];
+	await ownerClient.connectLobby({
+		lobbyCode: created.lobbyCode,
+		userSecret: created.userSecret,
+		onEvent(event) {
+			ownerEvents.push(event);
+		},
+	});
+	await guestClient.connectLobby({
+		lobbyCode: joined.lobbyCode,
+		userSecret: joined.userSecret,
+	});
+
+	await waitFor(() => ownerEvents.some((event) => event.event === "game_state"));
+	const gameState = ownerEvents.find((event) => event.event === "game_state")?.data;
+	assert.equal(gameState.totalRounds, 10);
+	assert.ok(gameState.options.every((option) => option.value >= -100 && option.value <= 100));
+	assert.ok(gameState.target >= -100 && gameState.target <= 100);
+});
+
 test("game starts on the second join and advances on option selection", async (t) => {
 	const server = new GameServer();
 	const address = await server.listen(0, "127.0.0.1");
@@ -145,7 +183,7 @@ test("game starts on the second join and advances on option selection", async (t
 	const gameState = ownerEvents.find((event) => event.event === "game_state")?.data;
 	assert.equal(gameState.phase, "playing");
 	assert.equal(gameState.roundNumber, 1);
-	assert.equal(gameState.totalRounds, 11);
+	assert.equal(gameState.totalRounds, 5);
 	assert.equal(gameState.players.length, 2);
 	assert.equal(gameState.options.length, 12);
 	assert.equal(new Set(gameState.options.map((option) => option.value)).size, 12);

@@ -1,4 +1,5 @@
 import { applyStatusClass, feedbackTone } from "../../../ui/feedback.js";
+import { formatLobbySettings } from "../../game-settings.js";
 import { state, syncRoundHistoryFromGame } from "../../app/state.js";
 import { client } from "../../network/client.js";
 import { currentPlayer, formatRoundValue, formatScore, formatSignedDifference } from "../format.js";
@@ -217,7 +218,11 @@ export function renderGameView(setFeedback, renderApp) {
 		});
 	}
 
-	refs.gameLobbyCode.textContent = state.session ? `Lobby code: ${state.session.lobbyCode}` : "No lobby connected.";
+	const settingsLabel = formatLobbySettings(state.lobby?.settings);
+	const lobbyPrefix = settingsLabel ? `${settingsLabel} · ` : "";
+	refs.gameLobbyCode.textContent = state.session
+		? `${lobbyPrefix}Lobby code: ${state.session.lobbyCode}`
+		: "No lobby connected.";
 
 	renderRoundTimeline(gameState, state.session?.userSecret);
 	renderPlayInfo(gameState, localPlayer);

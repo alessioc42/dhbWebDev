@@ -1,5 +1,6 @@
 import { client } from "../network/client.js";
 import { connectSession } from "../network/stream.js";
+import { readCreateLobbySettings } from "../game-settings.js";
 import { refs } from "../ui/refs.js";
 import { renderApp, setFeedback } from "../ui/render/index.js";
 import { gameHash } from "./routes.js";
@@ -19,7 +20,8 @@ export async function handleCreateLobby(event) {
 	}
 
 	try {
-		const result = await client.createLobby(username);
+		const settings = readCreateLobbySettings(refs);
+		const result = await client.createLobby(username, settings);
 		state.session = {
 			lobbyCode: result.lobbyCode,
 			userSecret: result.userSecret,

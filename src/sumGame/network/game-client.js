@@ -45,11 +45,15 @@ class GameClient {
 		return payload;
 	}
 
-	createLobby(username) {
+	createLobby(username, settings = {}) {
 		return this.#request("/create", {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({ USERNAME: username }),
+			body: JSON.stringify({
+				USERNAME: username,
+				TOTAL_ROUNDS: settings.totalRounds,
+				DIFFICULTY: settings.difficulty,
+			}),
 		});
 	}
 

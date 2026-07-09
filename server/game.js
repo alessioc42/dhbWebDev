@@ -4,8 +4,61 @@ import { SSECapableServer } from "./http_sse.js";
 import { createStaticFileHandler, resolveStaticRoot } from "./static.js";
 
 const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-const TOTAL_ROUNDS = 11;
+const DEFAULT_TOTAL_ROUNDS = 5;
+const MIN_TOTAL_ROUNDS = 3;
+const MAX_TOTAL_ROUNDS = 10;
 const ROUND_SCORE_BASE = 10;
+
+const DIFFICULTY_RANGES = {
+	easy: { min: 0, max: 30 },
+	medium: { min: 0, max: 70 },
+	hard: { min: 0, max: 100 },
+	expert: { min: -100, max: 100 },
+};
+
+function difficultyRange(difficulty) {
+	return DIFFICULTY_RANGES[difficulty] || DIFFICULTY_RANGES.medium;
+}
+
+function parseLobbySettings(payload) {
+	const rawRounds = Number(getField(payload, "TOTAL_ROUNDS", "totalRounds"));
+	const totalRounds = Number.isFinite(rawRounds)
+		? Math.min(MAX_TOTAL_ROUNDS, Math.max(MIN_TOTAL_ROUNDS, Math.trunc(rawRounds)))
+		: DEFAULT_TOTAL_ROUNDS;
+
+	const difficulty = normalizeText(getField(payload, "DIFFICULTY", "difficulty")).toLowerCase();
+	const resolvedDifficulty = Object.prototype.hasOwnProperty.call(DIFFICULTY_RANGES, difficulty)
+		? difficulty
+		: "medium";
+
+	return { totalRounds, difficulty: resolvedDifficulty };
+}
+
+function randomNonZeroValue(range) {
+	if (range.min >= 0) {
+		return randomInt(1, range.max + 1);
+	}
+
+	let value = 0;
+	while (value === 0) {
+		value = randomInt(range.min, range.max + 1);
+	}
+
+	return value;
+}
+
+function randomOptionValue(range, usedValues) {
+	for (let attempt = 0; attempt < 64; attempt += 1) {
+		const value = randomInt(range.min, range.max + 1);
+		if (value === 0 || usedValues.has(value)) {
+			continue;
+		}
+
+		return value;
+	}
+
+	return null;
+}
 
 function isRecord(value) {
 	return Boolean(value) && typeof value === "object" && !Array.isArray(value);
@@ -85,7 +138,9 @@ class GameServer {
 		return randomUUID();
 	}
 
-	#newRound(roundNumber) {
+	#newRound(roundNumber, settings) {
+		const range = difficultyRange(settings.difficulty);
+
 		for (;;) {
 			const winningCount = randomInt(3, 8);
 			const winningValues = [];
@@ -93,11 +148,7 @@ class GameServer {
 			let target = 0;
 
 			while (winningValues.length < winningCount) {
-				let value = 0;
-				while (value === 0) {
-					value = randomInt(-15, 16);
-				}
-
+				const value = randomNonZeroValue(range);
 				if (usedValues.has(value)) {
 					continue;
 				}
@@ -107,19 +158,23 @@ class GameServer {
 				target += value;
 			}
 
-			if (target < -100 || target > 100) {
+			if (target < range.min || target > range.max) {
 				continue;
 			}
 
 			const distractorValues = [];
 			while (distractorValues.length < 12 - winningCount) {
-				const value = randomInt(-100, 101);
-				if (value === 0 || value === target || usedValues.has(value)) {
-					continue;
+				const value = randomOptionValue(range, usedValues);
+				if (value === null) {
+					break;
 				}
 
 				usedValues.add(value);
 				distractorValues.push(value);
+			}
+
+			if (distractorValues.length < 12 - winningCount) {
+				continue;
 			}
 
 			const values = [...winningValues, ...distractorValues];
@@ -186,6 +241,7 @@ class GameServer {
 			lobbyCode: lobby.code,
 			playerCount: lobby.players.size,
 			owner: lobby.ownerUsername,
+			settings: lobby.settings,
 			players: [...lobby.players.values()].map((player) => this.#serializePlayer(player, lobby)),
 			game: this.#serializeGame(lobby),
 		};
@@ -253,11 +309,11 @@ class GameServer {
 			id: randomUUID(),
 			phase: "playing",
 			roundNumber: 1,
-			totalRounds: TOTAL_ROUNDS,
+			totalRounds: lobby.settings.totalRounds,
 			roundValues: new Map(),
 			selections: new Map(),
 			scores: new Map(),
-			currentRound: this.#newRound(1),
+			currentRound: this.#newRound(1, lobby.settings),
 			lastResult: null,
 			finalResult: null,
 		};
@@ -336,7 +392,7 @@ class GameServer {
 		}
 
 		game.roundNumber += 1;
-		game.currentRound = this.#newRound(game.roundNumber);
+		game.currentRound = this.#newRound(game.roundNumber, lobby.settings);
 		for (const player of lobby.players.values()) {
 			game.roundValues.set(player.secret, 0);
 			game.selections.set(player.secret, new Set());
@@ -455,12 +511,14 @@ class GameServer {
 			return;
 		}
 
+		const settings = parseLobbySettings(payload);
 		const lobbyCode = this.#newLobbyCode();
 		const userSecret = this.#newSecret();
 		const lobby = {
 			code: lobbyCode,
 			ownerSecret: userSecret,
 			ownerUsername: username,
+			settings,
 			players: new Map(),
 			closed: false,
 			game: null,
