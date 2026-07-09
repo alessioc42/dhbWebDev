@@ -546,6 +546,10 @@ html[data-game-phase="waiting"] .play-info--waiting {
 	color: var(--blue-dark);
 }
 
+#sumGameApp > .page {
+	display: none;
+}
+
 html[data-sum-game-route="highscores"] #highscoreScreen,
 html[data-sum-game-route="game"] #gameScreen,
 html[data-sum-game-route="lobby"] #lobbyScreen {

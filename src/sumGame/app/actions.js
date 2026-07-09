@@ -63,8 +63,16 @@ export async function handleJoinLobby(event) {
 	}
 }
 
-export function leaveLobby() {
+export async function leaveLobby() {
+	const userSecret = state.session?.userSecret;
 	closeStream();
+	if (userSecret) {
+		try {
+			await client.leave(userSecret);
+		} catch {
+			// Lobby may already be gone.
+		}
+	}
 	clearSession();
 	state.finalizedGameIds.clear();
 	state.lastRoundResult = null;

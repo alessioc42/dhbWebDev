@@ -1,4 +1,26 @@
-import { HIGH_SCORE_LIMIT, STORAGE_KEYS } from "../config.js";
+import { HIGH_SCORE_LIMIT, LEGACY_STORAGE_KEYS, STORAGE_KEYS } from "../config.js";
+
+function migrateLegacyStorageKey(key, legacyKey) {
+	try {
+		const currentValue = window.localStorage.getItem(key);
+		const legacyValue = window.localStorage.getItem(legacyKey);
+		if (!currentValue && legacyValue) {
+			window.localStorage.setItem(key, legacyValue);
+		}
+		if (legacyValue) {
+			window.localStorage.removeItem(legacyKey);
+		}
+	} catch {
+		// Ignore storage access errors.
+	}
+}
+
+function ensureStorageMigrated() {
+	migrateLegacyStorageKey(STORAGE_KEYS.session, LEGACY_STORAGE_KEYS.session);
+	migrateLegacyStorageKey(STORAGE_KEYS.highscores, LEGACY_STORAGE_KEYS.highscores);
+}
+
+ensureStorageMigrated();
 
 export function loadSession() {
 	try {

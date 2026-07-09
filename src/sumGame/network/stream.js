@@ -1,4 +1,5 @@
 import { client } from "./client.js";
+import { gameHash } from "../app/routes.js";
 import { setRoute } from "../app/router.js";
 import { clearSession, closeStream, clearRoundHistory, recordRoundResult, state, syncRoundHistoryFromGame } from "../app/state.js";
 import { upsertHighscore } from "../app/storage.js";
@@ -58,10 +59,21 @@ function finalizeGame(finalResult) {
 	setRoute("highscores");
 }
 
+function handleSessionLost(message) {
+	closeStream();
+	clearSession();
+	state.feedback.game = "";
+	state.feedback.highscores = "";
+	setFeedback("lobby", message);
+	state.route = "lobby";
+	window.location.hash = gameHash("lobby");
+	renderApp();
+}
+
 function handleStreamEvent(event) {
 	switch (event.event) {
 		case "error":
-			setFeedback(state.route === "game" ? "game" : "lobby", event.data?.message || "Stream error.");
+			handleSessionLost(event.data?.message || "Stream error.");
 			break;
 		case "lobby_state":
 			state.lobby = event.data;

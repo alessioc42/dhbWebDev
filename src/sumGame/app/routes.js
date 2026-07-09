@@ -8,7 +8,7 @@ export function normalizeRoute(hash) {
 	const raw = String(hash || "").replace(/^#\/?/u, "");
 	const segments = raw.split("/").filter(Boolean);
 
-	if (segments[0] === GAME_ID) {
+	if (segments[0]?.toLowerCase() === GAME_ID.toLowerCase()) {
 		segments.shift();
 	}
 

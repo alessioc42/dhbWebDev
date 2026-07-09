@@ -8,4 +8,9 @@ export const STORAGE_KEYS = {
 	highscores: "sumGame-highscores-v1",
 };
 
+export const LEGACY_STORAGE_KEYS = {
+	session: "onlineGame-session-v1",
+	highscores: "onlineGame-highscores-v1",
+};
+
 export const HIGH_SCORE_LIMIT = 50;
