@@ -25,9 +25,9 @@ const HIGHSCORE_KEY = "zehnerUebergang_highScore";
 const USERNAME_KEY = "zehnerUebergang_userName";
 const MAX_TIME = 60;
 
-const audio = new Audio("./sounds/pling.mp3");
-audio.preload = "auto";
-audio.volume = 0.5;
+const successAudio = new Audio("./sounds/pling.mp3");
+successAudio.preload = "auto";
+successAudio.volume = 0.5;
 
 const game = {
     num1: 0,
