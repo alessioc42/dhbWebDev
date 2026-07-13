@@ -4,6 +4,7 @@ const gameOverPage = document.querySelector("#gameOverPage");
 
 const nameInput = document.querySelector("#nameInput"); //Startseitenelemente
 const startBtn = document.querySelector("#startBtn");
+const leaveBtn = document.querySelector("#leaveBtn");
 
 const nameSpan = document.querySelector("#nameSpan");   //Scoreboardelemente
 const scoreSpan = document.querySelector("#pointsSpan");
@@ -17,6 +18,7 @@ const solutionField = document.querySelector("#solutionInput");
 const form = document.querySelector("#form");
 
 const restartBtn = document.querySelector("#restartBtn");
+const returnBtn = document.querySelector("#returnBtn");
 const finalNameSpan = document.querySelector("#finalName");
 const finalScoreSpan = document.querySelector("#finalScore");
 const highScoreSpan = document.querySelector("#highScore");
@@ -209,4 +211,13 @@ addEventListener("DOMContentLoaded", (event) => {   //erst wenn html geladen und
     }); //bei Start: Username speichern, routehash setzen, neue Aufgabe generieren und Timer starten
 
     restartBtn.addEventListener("click", startGame);
+
+    leaveBtn.addEventListener("click", () => {
+        window.location.href = "/#/";
+    });
+
+    returnBtn.addEventListener("click", () => {
+    location.hash = "#start";
+    nameInput.focus();
+    });
 });
