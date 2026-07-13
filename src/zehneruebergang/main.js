@@ -5,6 +5,7 @@ const gameOverPage = document.querySelector("#gameOverPage");
 const nameInput = document.querySelector("#nameInput"); //Startseitenelemente
 const startBtn = document.querySelector("#startBtn");
 const leaveBtn = document.querySelector("#leaveBtn");
+const startForm = document.querySelector("#startForm");
 
 const nameSpan = document.querySelector("#nameSpan");   //Scoreboardelemente
 const scoreSpan = document.querySelector("#pointsSpan");
@@ -146,6 +147,14 @@ function startTimer() {
     }, 1000);
 }
 
+function startGameFromForm(event) {
+    if (event) event.preventDefault();
+
+    game.userName = String(nameInput.value.trim()) || "Anonym";
+    localStorage.setItem(USERNAME_KEY, game.userName);
+    startGame();
+}
+
 function renderPage(){  //routing
     if (!location.hash) {
         location.hash = "#start";
@@ -220,4 +229,7 @@ addEventListener("DOMContentLoaded", (event) => {   //erst wenn html geladen und
     location.hash = "#start";
     nameInput.focus();
     });
+
+    startForm.addEventListener("submit", startGameFromForm);
+    startBtn.addEventListener("click", startGameFromForm);
 });
