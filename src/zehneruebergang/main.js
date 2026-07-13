@@ -4,6 +4,8 @@ const gameOverPage = document.querySelector("#gameOverPage");
 
 const nameInput = document.querySelector("#nameInput"); //Startseitenelemente
 const startBtn = document.querySelector("#startBtn");
+const leaveBtn = document.querySelector("#leaveBtn");
+const startForm = document.querySelector("#startForm");
 
 const nameSpan = document.querySelector("#nameSpan");   //Scoreboardelemente
 const scoreSpan = document.querySelector("#pointsSpan");
@@ -17,6 +19,7 @@ const solutionField = document.querySelector("#solutionInput");
 const form = document.querySelector("#form");
 
 const restartBtn = document.querySelector("#restartBtn");
+const returnBtn = document.querySelector("#returnBtn");
 const finalNameSpan = document.querySelector("#finalName");
 const finalScoreSpan = document.querySelector("#finalScore");
 const highScoreSpan = document.querySelector("#highScore");
@@ -25,6 +28,10 @@ const HIGHSCORE_KEY = "zehnerUebergang_highScore";
 const USERNAME_KEY = "zehnerUebergang_userName";
 const MAX_TIME = 60;
 
+const successAudio = new Audio("./sounds/pling.mp3");
+successAudio.preload = "auto";
+successAudio.volume = 0.5;
+
 const game = {
     num1: 0,
     num2: 0,
@@ -32,7 +39,7 @@ const game = {
     score: 0,
     solutionChecked: false,
     userName: String(localStorage.getItem(USERNAME_KEY)) || "",
-    highScore: Number(localStorage.getItem(HIGHSCORE_KEY)) || 0
+    highScore: JSON.parse(localStorage.getItem(HIGHSCORE_KEY) || '{"score":0}').score
 };  //Variablen und Daten
 
 /*
@@ -50,52 +57,73 @@ function genNewTask() { //generiert neue Zahlen und zeigt diese an
     solutionField.style.backgroundColor = 'white';   //Antwortfeld wird wieder weiß gestellt
     solutionField.value = "";
     solutionField.focus();
+    game.solutionChecked = false;
 }
 
 function genZehnerUebergang(number) {   //generiert eine zweite Zahl mit der number addiert einen Zehnerübergang erzeugt
     return (10 - (number % 10));
 }
 
-function checkSolution() {  //überprüft die Lösung
+function checkSolution() {
     if (solutionCorrect()) {
-        solutionField.style.backgroundColor = 'green';
-        newTaskBtn.focus();
-        if (!game.solutionChecked) changeScoreBy(1);   //verhindert mehrfaches vergeben von Punkten pro Aufgabe
+        game.score++;
+        genNewTask();
+        successAudio.volume = 0.5;
+        successAudio.play();
     }else{
-        solutionField.style.backgroundColor = 'red';
-        solutionField.focus();
-        if (!game.solutionChecked) changeScoreBy(-1);  //verhindert mehrfaches abziehen von Punkten pro Aufgabe
+        solutionField.style.backgroundColor = "#fd4a4a91";
+        if (!game.solutionChecked) game.score--;
+        game.solutionChecked = true;
     }
-    game.solutionChecked = true;
+    scoreSpan.textContent = game.score;
+    solutionField.value = "";
+    solutionField.focus();
 }
 
 function solutionCorrect() {
     return game.num1 + game.num2 === Number(solutionField.value);
 }
 
-function changeScoreBy(x) { //score um x ändern und auf dem Screen aktualisieren
-    game.score += x;
-    scoreSpan.textContent = game.score;
-}
-
 function gameOver() {
     newTaskBtn.disabled = true;
     checkBtn.disabled = true;
     solutionField.disabled = true;
+    let highScoreName = game.userName;
 
     if (game.highScore < game.score) {
-        localStorage.setItem(HIGHSCORE_KEY, game.score);
+        const highScorePair = {
+            score: game.score,
+            userName: game.userName
+        };
+        localStorage.setItem(HIGHSCORE_KEY, JSON.stringify(highScorePair));
         game.highScore = game.score;
-        //New Highscore (implement)
-    }
+        //eventuell new Highscore Animation
+    }else{
+        try {
+            const storedData = localStorage.getItem(HIGHSCORE_KEY);
+            if (storedData) {
+                highScoreName = JSON.parse(storedData).userName ?? "Unbekannt";
+            } else {
+                highScoreName = "Unbekannt";
+            }
+        } catch (error) {
+            console.error("Fehler beim Laden des High-Scores:", error);
+            highScoreName = "Unbekannt";
+        }
+}
     finalNameSpan.textContent = game.userName; //Username und Scores anzeigen
     finalScoreSpan.textContent = game.score;
-    highScoreSpan.textContent = game.highScore;
+    highScoreSpan.textContent = game.highScore + " von " + highScoreName;
 
     location.hash = "#ende";    //auf gameOver Seite wechseln
 }
 
-function startGame() {
+function startGame(event) {
+    if (event) event.preventDefault();
+
+    game.userName = String(nameInput.value.trim()) || "Anonym";
+    localStorage.setItem(USERNAME_KEY, game.userName);
+
     game.score = 0;
     location.hash = "#spiel";
 
@@ -124,6 +152,14 @@ function startTimer() {
     }, 1000);
 }
 
+function startGameFromForm(event) {
+    if (event) event.preventDefault();
+
+    game.userName = String(nameInput.value.trim()) || "Anonym";
+    localStorage.setItem(USERNAME_KEY, game.userName);
+    startGame();
+}
+
 function renderPage(){  //routing
     if (!location.hash) {
         location.hash = "#start";
@@ -135,6 +171,12 @@ function renderPage(){  //routing
             startPage.style.display = "block";
             gamePage.style.display = "none";
             gameOverPage.style.display = "none";
+            if (!localStorage.getItem(USERNAME_KEY)) {
+                nameInput.focus();
+            }else{
+                nameInput.value = localStorage.getItem(USERNAME_KEY);
+                startBtn.focus();
+            }
             break;
         case "#spiel":
             startPage.style.display = "none";
@@ -142,6 +184,7 @@ function renderPage(){  //routing
             gameOverPage.style.display = "none";
             nameSpan.textContent = localStorage.getItem(USERNAME_KEY) || "";
             scoreSpan.textContent = 0;
+            solutionInput.focus();
             break;
         case "#ende":
             startPage.style.display = "none";
@@ -161,7 +204,10 @@ function renderPage(){  //routing
 
 addEventListener("DOMContentLoaded", (event) => {   //erst wenn html geladen und skript ausgeführt wurde
     window.addEventListener("hashchange", renderPage);
-    window.addEventListener("load", renderPage);
+    window.addEventListener("load", () => {
+        renderPage,
+        location.hash = "#start";
+    });
 
     newTaskBtn.addEventListener("click", genNewTask);
 
@@ -170,13 +216,18 @@ addEventListener("DOMContentLoaded", (event) => {   //erst wenn html geladen und
         checkSolution();
     });   //verhindert das direkte löschen der antwort nach dem kontrollieren/abgeben
 
-    startBtn.addEventListener("click", () => {
-        game.userName = String(nameInput.value.trim()) || "Anonym";
-        localStorage.setItem(USERNAME_KEY, game.userName);
-        location.hash = "#spiel";
-        genNewTask();   //erste Aufgabe generieren
-        startTimer();
-    }); //bei Start: Username speichern, routehash setzen, neue Aufgabe generieren und Timer starten
 
     restartBtn.addEventListener("click", startGame);
+
+    leaveBtn.addEventListener("click", () => {
+        window.location.href = "/#/";
+    });
+
+    returnBtn.addEventListener("click", () => {
+    location.hash = "#start";
+    nameInput.focus();
+    });
+
+    startForm.addEventListener("submit", startGame);
+    startBtn.addEventListener("click", startGame);
 });

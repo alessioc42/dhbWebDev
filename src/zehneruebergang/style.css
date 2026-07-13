@@ -9,17 +9,15 @@ body{ /* allgemeine Seiteneinstellungen */
     display: none;
 }
 
-#nameSpan{
-    color: #0984e3;
-}
-
-#pointsSpan{
+#nameSpan,
+#pointsSpan,
+#timeSpan{
     color: #0984e3;
 }
 
 .scoreboard{
     position: fixed;
-    top: 10px;
+    top: 80px;
     left: 10px;
     font-size: 2rem;
 }
@@ -118,7 +116,7 @@ button{ /* Design aller Buttons */
     font-family: inherit;
 
     color: white;
-    background: #ff7675;
+    background: #0e49fb;
 
     border: none;
     border-radius: 15px;
@@ -131,7 +129,7 @@ button{ /* Design aller Buttons */
 }
 
 button:hover{   /*Farbe und Position leicht verändern während hovern*/
-    background: #e84393;
+    background: rgb(87, 126, 243);
     transform: translateY(-2px);
 }
 
@@ -145,4 +143,37 @@ button:active{
 
 #newTaskBtn:hover{
     background: #009d7a;
+}
+
+nav {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    z-index: 20;
+}
+
+@media (max-width: 600px) {
+    #leaveBtn,
+    #returnBtn {
+        width: 48px;
+        height: 48px;
+        padding: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0;
+    }
+
+    #leaveBtn::before,
+    #returnBtn::before {
+        content: "←";
+        font-size: 1.4rem;
+    }
+
+    .scoreboard {
+        top: 70px;
+        left: 8px;
+        font-size: 1rem;
+        line-height: 1.2;
+    }
 }
