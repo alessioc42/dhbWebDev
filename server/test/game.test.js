@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import { GameServer } from "../game.js";
-import { GameClient } from "../../src/game-client.js";
+import { GameClient } from "../../src/sumGame/network/game-client.js";
 
 function wait(ms) {
 	return new Promise((resolve) => {
@@ -95,7 +95,11 @@ test("creates, joins, lists and pushes through the game client", async (t) => {
 	);
 
 	guestStream.close();
-	await waitFor(() => ownerEvents.some((event) => event.event === "player_left"));
+	await waitFor(() => {
+		const lobbyState = ownerEvents.filter((event) => event.event === "lobby_state").at(-1)?.data;
+		const guestPlayer = lobbyState?.players?.find((player) => player.userSecret === joined.userSecret);
+		return guestPlayer && guestPlayer.connected === false;
+	});
 
 	ownerStream.close();
 });
@@ -237,7 +241,148 @@ test("game starts on the second join and advances on option selection", async (t
 	ownerStream.close();
 });
 
-test("owner disconnect closes the lobby for connected clients", async (t) => {
+function findOvershootSubset(options, target) {
+	for (let size = 3; size <= options.length; size += 1) {
+		const pick = [];
+		const search = (startIndex) => {
+			if (pick.length === size) {
+				const sum = pick.reduce((total, option) => total + option.value, 0);
+				const removable = pick.find((option) => sum - option.value === target);
+				if (removable) {
+					return { selected: [...pick], remove: removable };
+				}
+				return null;
+			}
+
+			for (let index = startIndex; index < options.length; index += 1) {
+				pick.push(options[index]);
+				const result = search(index + 1);
+				if (result) {
+					return result;
+				}
+				pick.pop();
+			}
+
+			return null;
+		};
+
+		const result = search(0);
+		if (result) {
+			return result;
+		}
+	}
+
+	return null;
+}
+
+function orderOptionsForOvershoot(selected, remove, target) {
+	const overshootTotal = selected.reduce((total, option) => total + option.value, 0);
+	assert.equal(overshootTotal, target + remove.value);
+
+	const search = (order, remaining) => {
+		if (remaining.length === 0) {
+			return order;
+		}
+
+		for (let index = 0; index < remaining.length; index += 1) {
+			const next = remaining[index];
+			const runningTotal = order.reduce((total, option) => total + option.value, 0) + next.value;
+			if (runningTotal === target) {
+				continue;
+			}
+
+			const rest = [...remaining.slice(0, index), ...remaining.slice(index + 1)];
+			const result = search([...order, next], rest);
+			if (result) {
+				return result;
+			}
+		}
+
+		return null;
+	};
+
+	const ordered = search([], selected);
+	return ordered;
+}
+
+test("round finishes when deselecting down to the target", async (t) => {
+	const server = new GameServer();
+	const address = await server.listen(0, "127.0.0.1");
+	const baseUrl = `http://127.0.0.1:${address.port}`;
+	const ownerClient = new GameClient(baseUrl);
+	const guestClient = new GameClient(baseUrl);
+
+	t.after(async () => {
+		await server.close();
+	});
+
+	const created = await ownerClient.createLobby("Alice");
+	const joined = await guestClient.joinLobby("Bob", created.lobbyCode);
+
+	const ownerEvents = [];
+	const guestEvents = [];
+	const ownerStream = await ownerClient.connectLobby({
+		lobbyCode: created.lobbyCode,
+		userSecret: created.userSecret,
+		onEvent(event) {
+			ownerEvents.push(event);
+		},
+	});
+	const guestStream = await guestClient.connectLobby({
+		lobbyCode: joined.lobbyCode,
+		userSecret: joined.userSecret,
+		onEvent(event) {
+			guestEvents.push(event);
+		},
+	});
+
+	await waitFor(
+		() =>
+			ownerEvents.some((event) => event.event === "game_state") &&
+			guestEvents.some((event) => event.event === "game_state"),
+	);
+
+	const gameState = ownerEvents.find((event) => event.event === "game_state")?.data;
+	const overshoot = findOvershootSubset(gameState.options, gameState.target);
+	if (!overshoot) {
+		t.skip("no overshoot subset available for this round");
+		return;
+	}
+
+	const selectionOrder = orderOptionsForOvershoot(overshoot.selected, overshoot.remove, gameState.target);
+	if (!selectionOrder) {
+		t.skip("no valid overshoot selection order for this round");
+		return;
+	}
+
+	let lastGame = null;
+	for (const option of selectionOrder) {
+		const result = await ownerClient.chooseOption(created.userSecret, option.id);
+		lastGame = result.game;
+	}
+
+	const ownerAfterOvershoot = lastGame.players.find((player) => player.userSecret === created.userSecret);
+	const overshootTotal = overshoot.selected.reduce((total, option) => total + option.value, 0);
+	assert.equal(ownerAfterOvershoot.roundValue, overshootTotal);
+
+	await ownerClient.chooseOption(created.userSecret, overshoot.remove.id);
+
+	await waitFor(
+		() =>
+			ownerEvents.some((event) => event.event === "round_result") &&
+			guestEvents.some((event) => event.event === "round_result"),
+	);
+
+	const roundResult = ownerEvents.find((event) => event.event === "round_result")?.data;
+	assert.equal(roundResult.roundNumber, 1);
+	assert.equal(roundResult.winner.username, "Alice");
+	assert.equal(roundResult.target, gameState.target);
+
+	guestStream.close();
+	ownerStream.close();
+});
+
+test("owner leave closes the lobby for connected clients", async (t) => {
 	const server = new GameServer();
 	const address = await server.listen(0, "127.0.0.1");
 	const baseUrl = `http://127.0.0.1:${address.port}`;
@@ -266,10 +411,64 @@ test("owner disconnect closes the lobby for connected clients", async (t) => {
 
 	await waitFor(() => guestEvents.some((event) => event.event === "lobby_state"));
 
-	ownerStream.close();
+	await ownerClient.leave(created.userSecret);
 
 	await waitFor(() => guestEvents.some((event) => event.event === "lobby_closed"));
 	const lobbies = await guestClient.listLobbies();
 	assert.deepEqual(lobbies, { lobbies: [] });
+	ownerStream.close();
+	guestStream.close();
+});
+
+test("stream disconnect keeps the lobby and allows reconnect", async (t) => {
+	const server = new GameServer();
+	const address = await server.listen(0, "127.0.0.1");
+	const baseUrl = `http://127.0.0.1:${address.port}`;
+	const ownerClient = new GameClient(baseUrl);
+	const guestClient = new GameClient(baseUrl);
+
+	t.after(async () => {
+		await server.close();
+	});
+
+	const created = await ownerClient.createLobby("Alice");
+	const joined = await guestClient.joinLobby("Bob", created.lobbyCode);
+
+	const ownerEvents = [];
+	const ownerStream = await ownerClient.connectLobby({
+		lobbyCode: created.lobbyCode,
+		userSecret: created.userSecret,
+		onEvent(event) {
+			ownerEvents.push(event);
+		},
+	});
+	const guestStream = await guestClient.connectLobby({
+		lobbyCode: joined.lobbyCode,
+		userSecret: joined.userSecret,
+	});
+
+	await waitFor(() => ownerEvents.some((event) => event.event === "game_state"));
+
+	ownerStream.close();
+	await wait(50);
+
+	const lobbiesAfterDisconnect = await ownerClient.listLobbies();
+	assert.equal(lobbiesAfterDisconnect.lobbies.length, 1);
+
+	const reconnectEvents = [];
+	const reconnectStream = await ownerClient.connectLobby({
+		lobbyCode: created.lobbyCode,
+		userSecret: created.userSecret,
+		onEvent(event) {
+			reconnectEvents.push(event);
+		},
+	});
+
+	await waitFor(() => reconnectEvents.some((event) => event.event === "game_state"));
+	const gameState = reconnectEvents.find((event) => event.event === "game_state")?.data;
+	assert.equal(gameState.players.length, 2);
+	assert.equal(gameState.players.find((player) => player.userSecret === created.userSecret)?.connected, true);
+
+	reconnectStream.close();
 	guestStream.close();
 });

@@ -81,6 +81,14 @@ class GameClient {
 		});
 	}
 
+	leave(userSecret) {
+		return this.#request("/leave", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ USER_SECRET: userSecret }),
+		});
+	}
+
 	async connectLobby({ lobbyCode, userSecret, onEvent } = {}) {
 		const url = this.#url("/events");
 		if (lobbyCode) {

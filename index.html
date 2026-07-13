@@ -3,67 +3,144 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/src/assets/favicon.ico" />
     <title>Math Duel</title>
+    <link rel="stylesheet" href="/src/style.css" />
+    <script>
+      (function () {
+        function activeGameFromHash(hash) {
+          var parts = String(hash || "#/").replace(/^#\/?/, "").split("/").filter(Boolean);
+          var first = (parts[0] || "").toLowerCase();
+          if (first === "sumgame") return "sumGame";
+          if (first === "onlinegame") return "sumGame";
+          if (first === "offlinegame") return "offlineGame";
+          if (first === "lobby" || first === "game" || first === "highscores") return "sumGame";
+          return "home";
+        }
+
+        function syncShellFromHash() {
+          var hash = location.hash;
+          if (!hash || hash === "#") {
+            location.replace("#/");
+            hash = "#/";
+          }
+          document.documentElement.dataset.activeGame = activeGameFromHash(hash);
+        }
+
+        syncShellFromHash();
+        window.addEventListener("hashchange", syncShellFromHash);
+      })();
+    </script>
   </head>
   <body>
     <main id="app">
-      <section id="lobbyScreen" data-screen="lobby">
-        <h1>Math Duel</h1>
-        <p id="lobbyStatus">Ready.</p>
-
-        <form id="createLobbyForm">
-          <h2>Create lobby</h2>
-          <label>
-            Name
-            <input id="createUsernameInput" name="username" autocomplete="nickname" />
-          </label>
-          <button type="submit">Create lobby</button>
-        </form>
-
-        <form id="joinLobbyForm">
-          <h2>Join lobby</h2>
-          <label>
-            Name
-            <input id="joinUsernameInput" name="username" autocomplete="nickname" />
-          </label>
-          <label>
-            Code
-            <input id="joinCodeInput" name="code" maxlength="4" />
-          </label>
-          <button type="submit">Join lobby</button>
-        </form>
-
-        <button id="openHighscoresFromLobby" type="button">Highscores</button>
+      <section id="homeScreen" class="page" data-screen="home">
+        <header class="page-head">
+          <h1 class="page-title">Math Duel</h1>
+          <p class="meta">Choose a game mode.</p>
+        </header>
+        <nav class="stack">
+          <a class="nav-link" href="#/sumGame/lobby">Calculator race</a>
+          <a class="nav-link" href="#/offlineGame">Offline game</a>
+        </nav>
       </section>
 
-      <section id="gameScreen" data-screen="game" hidden>
-        <h1>Game</h1>
-        <p id="gameLobbyCode">No lobby connected.</p>
-        <p id="gameRoundInfo">Waiting.</p>
-        <p id="gameStatus">Idle.</p>
-        <p id="roundResult"></p>
+      <div id="sumGameApp">
+        <section id="lobbyScreen" class="page" data-screen="lobby">
+          <header class="page-head">
+            <a class="btn btn-back" href="#/">Back to games</a>
+            <h1 class="page-title">Math Duel</h1>
+            <p id="lobbyStatus" class="status status--idle" hidden></p>
+          </header>
 
-        <h2>Scoreboard</h2>
-        <ul id="scoreboardList"></ul>
+          <div class="page-body stack">
+            <label class="field">
+              <span class="field-label">Name</span>
+              <input class="field-input" id="usernameInput" name="username" autocomplete="nickname" />
+            </label>
 
-        <h2>Options</h2>
-        <p id="optionCount" aria-live="polite"></p>
-        <div id="optionList"></div>
+            <form id="createLobbyForm" class="panel stack">
+              <h2 class="panel-title">Create lobby</h2>
+              <button class="btn btn-primary" type="submit">Create lobby</button>
+            </form>
 
-        <button id="leaveLobbyButton" type="button">Leave lobby</button>
-        <button id="openHighscoresFromGame" type="button">Highscores</button>
-      </section>
+            <form id="joinLobbyForm" class="panel stack">
+              <h2 class="panel-title">Join lobby</h2>
+              <label class="field">
+                <span class="field-label">Code</span>
+                <input class="field-input" id="joinCodeInput" name="code" maxlength="4" />
+              </label>
+              <button class="btn btn-primary" type="submit">Join lobby</button>
+            </form>
 
-      <section id="highscoreScreen" data-screen="highscores" hidden>
-        <h1>Highscores</h1>
-        <p id="highscoreStatus">Stored games</p>
-        <ol id="highscoreList"></ol>
-        <button id="backToLobbyButton" type="button">Back to lobby</button>
+            <div class="nav-actions">
+              <button id="openHighscoresFromLobby" class="btn btn-secondary" type="button">Highscores</button>
+            </div>
+          </div>
+        </section>
+
+        <section id="gameScreen" class="page" data-screen="game">
+          <header class="page-head">
+            <h1 class="page-title">Game</h1>
+            <p id="gameLobbyCode" class="meta">No lobby connected.</p>
+            <p id="gameStatus" class="status status--idle" hidden></p>
+          </header>
+
+          <div class="page-body stack">
+            <section class="game-play stack">
+              <div id="roundTimeline" class="round-timeline" hidden></div>
+              <div id="gameTargetNumber" class="play-info status status--idle" hidden></div>
+              <div id="optionList" class="option-grid option-grid--rect"></div>
+            </section>
+
+            <section class="game-scoreboard stack">
+              <h2 class="section-title">Scoreboard</h2>
+              <ul id="scoreboardList" class="scoreboard"></ul>
+            </section>
+
+            <div class="nav-actions">
+              <button id="leaveLobbyButton" class="btn btn-back" type="button">Leave lobby</button>
+              <button id="openHighscoresFromGame" class="btn btn-secondary" type="button">Highscores</button>
+            </div>
+          </div>
+        </section>
+
+        <section id="highscoreScreen" class="page" data-screen="highscores">
+          <header class="page-head">
+            <button id="backToLobbyButton" class="btn btn-back" type="button">Back to lobby</button>
+            <h1 class="page-title">Highscores</h1>
+            <p id="highscoreStatus" class="status status--info" hidden></p>
+          </header>
+          <div class="highscore-table-wrap">
+            <table class="highscore-table">
+              <thead>
+                <tr>
+                  <th scope="col">Played</th>
+                  <th scope="col">You</th>
+                  <th scope="col">Opponent</th>
+                  <th scope="col">Your score</th>
+                  <th scope="col">Opponent score</th>
+                  <th scope="col">High score</th>
+                </tr>
+              </thead>
+              <tbody id="highscoreList"></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+
+      <section id="offlineGameApp" class="page" data-screen="offline">
+        <header class="page-head">
+          <a class="btn btn-back" id="offlineBackHomeButton" href="#/">Back to games</a>
+          <h1 class="page-title">Offline game</h1>
+        </header>
+        <p class="meta">Coming soon.</p>
       </section>
     </main>
 
     <script>
-      window.GAME_SERVER_HOST = window.GAME_SERVER_HOST || "http://127.0.0.1:3000";
+      window.GAME_SERVER_HOST = window.GAME_SERVER_HOST || window.location.origin;
     </script>
     <script type="module" src="/src/main.js"></script>
   </body>

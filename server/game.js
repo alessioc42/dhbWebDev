@@ -1,6 +1,7 @@
 import { randomInt, randomUUID } from "node:crypto";
 
 import { SSECapableServer } from "./http_sse.js";
+import { createStaticFileHandler, resolveStaticRoot } from "./static.js";
 
 const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 const TOTAL_ROUNDS = 11;
@@ -29,8 +30,19 @@ function scoreRound(durationMs) {
 	return Math.round((ROUND_SCORE_BASE / durationSeconds) * 100) / 100;
 }
 
+function createDefaultServer() {
+	const staticRoot = resolveStaticRoot(import.meta.url);
+	if (!staticRoot) {
+		return new SSECapableServer();
+	}
+
+	return new SSECapableServer({
+		notFoundHandler: createStaticFileHandler(staticRoot),
+	});
+}
+
 class GameServer {
-	constructor(server = new SSECapableServer()) {
+	constructor(server = createDefaultServer()) {
 		this.server = server;
 		this.lobbies = new Map();
 		this.playersBySecret = new Map();
@@ -40,6 +52,7 @@ class GameServer {
 		this.server.get("/lobbies", this.#listLobbies.bind(this));
 		this.server.post("/push", this.#pushMessage.bind(this));
 		this.server.post("/choose", this.#chooseOption.bind(this));
+		this.server.post("/leave", this.#leaveLobby.bind(this));
 		this.server.sse("/events", this.#connectPlayer.bind(this));
 	}
 
@@ -358,20 +371,41 @@ class GameServer {
 		}
 	}
 
-	#disconnectPlayer(secret, reason = "disconnect") {
+	#disconnectPlayer(secret) {
 		const player = this.playersBySecret.get(secret);
 		if (!player) {
 			return;
 		}
 
 		const lobby = this.lobbies.get(player.lobbyCode);
-		this.playersBySecret.delete(secret);
-
 		if (!lobby || lobby.closed) {
 			return;
 		}
 
 		player.client = null;
+		this.#broadcastLobbyState(lobby);
+		if (lobby.game) {
+			this.#broadcastGameState(lobby);
+		}
+	}
+
+	#removePlayer(secret, reason = "leave") {
+		const player = this.playersBySecret.get(secret);
+		if (!player) {
+			return;
+		}
+
+		const lobby = this.lobbies.get(player.lobbyCode);
+		const client = player.client;
+		player.client = null;
+		this.playersBySecret.delete(secret);
+
+		if (!lobby || lobby.closed) {
+			if (client) {
+				client.close();
+			}
+			return;
+		}
 
 		if (player.isOwner) {
 			this.#closeLobby(lobby, reason);
@@ -402,6 +436,10 @@ class GameServer {
 
 		if (lobby.players.size === 0) {
 			this.lobbies.delete(lobby.code);
+		}
+
+		if (client) {
+			client.close();
 		}
 	}
 
@@ -574,6 +612,28 @@ class GameServer {
 		});
 	}
 
+	async #leaveLobby(ctx) {
+		const payload = await this.#readJsonObject(ctx);
+		if (!payload) {
+			return;
+		}
+
+		const userSecret = normalizeText(getField(payload, "USER_SECRET", "userSecret"));
+		if (!userSecret) {
+			this.#sendJsonError(ctx, 400, "USER_SECRET is required.");
+			return;
+		}
+
+		const player = this.playersBySecret.get(userSecret);
+		if (!player) {
+			ctx.json(200, { ok: true });
+			return;
+		}
+
+		this.#removePlayer(userSecret, "leave");
+		ctx.json(200, { ok: true });
+	}
+
 	async #chooseOption(ctx) {
 		const payload = await this.#readJsonObject(ctx);
 		if (!payload) {
@@ -635,7 +695,7 @@ class GameServer {
 		const currentValue = (game.roundValues.get(userSecret) || 0) + (wasSelected ? -option.value : option.value);
 		game.roundValues.set(userSecret, currentValue);
 
-		if (!wasSelected && currentValue === round.target) {
+		if (currentValue === round.target) {
 			this.#finishRound(lobby, userSecret);
 		} else {
 			this.#broadcastGameState(lobby);
@@ -689,7 +749,7 @@ class GameServer {
 		);
 
 		return () => {
-			this.#disconnectPlayer(userSecret, "disconnect");
+			this.#disconnectPlayer(userSecret);
 		};
 	}
 }
