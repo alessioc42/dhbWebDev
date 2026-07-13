@@ -65,8 +65,8 @@ function checkSolution() {
     if (solutionCorrect()) {
         game.score++;
         genNewTask();
-        audio.volume = 0.5;
-        audio.play();
+        successAudio.volume = 0.5;
+        successAudio.play();
     }else{
         solutionField.style.backgroundColor = "#fd4a4a91";
         if (!game.solutionChecked) game.score--;
