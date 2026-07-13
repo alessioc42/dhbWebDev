@@ -96,8 +96,18 @@ function gameOver() {
         game.highScore = game.score;
         //eventuell new Highscore Animation
     }else{
-        highScoreName = JSON.parse(localStorage.getItem(HIGHSCORE_KEY)).userName;
-    }
+        try {
+            const storedData = localStorage.getItem(HIGHSCORE_KEY);
+            if (storedData) {
+                highScoreName = JSON.parse(storedData).userName ?? "Unbekannt";
+            } else {
+                highScoreName = "Unbekannt";
+            }
+        } catch (error) {
+            console.error("Fehler beim Laden des High-Scores:", error);
+            highScoreName = "Unbekannt";
+        }
+}
     finalNameSpan.textContent = game.userName; //Username und Scores anzeigen
     finalScoreSpan.textContent = game.score;
     highScoreSpan.textContent = game.highScore + " von " + highScoreName;
