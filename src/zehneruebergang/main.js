@@ -118,7 +118,12 @@ function gameOver() {
     location.hash = "#ende";    //auf gameOver Seite wechseln
 }
 
-function startGame() {
+function startGame(event) {
+    if (event) event.preventDefault();
+
+    game.userName = String(nameInput.value.trim()) || "Anonym";
+    localStorage.setItem(USERNAME_KEY, game.userName);
+
     game.score = 0;
     location.hash = "#spiel";
 
@@ -211,13 +216,6 @@ addEventListener("DOMContentLoaded", (event) => {   //erst wenn html geladen und
         checkSolution();
     });   //verhindert das direkte löschen der antwort nach dem kontrollieren/abgeben
 
-    startBtn.addEventListener("click", () => {
-        game.userName = String(nameInput.value.trim()) || "Anonym";
-        localStorage.setItem(USERNAME_KEY, game.userName);
-        location.hash = "#spiel";
-        genNewTask();   //erste Aufgabe generieren
-        startTimer();
-    }); //bei Start: Username speichern, routehash setzen, neue Aufgabe generieren und Timer starten
 
     restartBtn.addEventListener("click", startGame);
 
@@ -230,6 +228,6 @@ addEventListener("DOMContentLoaded", (event) => {   //erst wenn html geladen und
     nameInput.focus();
     });
 
-    startForm.addEventListener("submit", startGameFromForm);
-    startBtn.addEventListener("click", startGameFromForm);
+    startForm.addEventListener("submit", startGame);
+    startBtn.addEventListener("click", startGame);
 });
