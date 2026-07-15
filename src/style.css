@@ -587,6 +587,154 @@ html[data-game-phase="waiting"] .play-info--waiting {
 	color: var(--blue-dark);
 }
 
+.equation-chain {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+	transform-origin: top center;
+}
+
+.equation-chain--enter {
+	animation: equation-chain-enter 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.equation-chain--exit {
+	animation: equation-chain-exit 0.2s ease-in both;
+}
+
+.equation-chain__expr {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.375rem;
+}
+
+.equation-piece {
+	transform-origin: center;
+}
+
+.equation-piece--enter {
+	animation: equation-piece-enter 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
+	animation-delay: var(--equation-stagger, 0ms);
+}
+
+.equation-piece--exit {
+	animation: equation-piece-exit 0.16s ease-in both;
+	pointer-events: none;
+}
+
+.equation-piece--bump {
+	animation: equation-piece-bump 0.2s ease-out;
+}
+
+@keyframes equation-piece-enter {
+	from {
+		opacity: 0;
+		transform: scale(0.75) translateY(6px);
+	}
+
+	to {
+		opacity: 1;
+		transform: scale(1) translateY(0);
+	}
+}
+
+@keyframes equation-piece-exit {
+	from {
+		opacity: 1;
+		transform: scale(1) translateY(0);
+	}
+
+	to {
+		opacity: 0;
+		transform: scale(0.75) translateY(-6px);
+	}
+}
+
+@keyframes equation-piece-bump {
+	0%,
+	100% {
+		transform: scale(1);
+	}
+
+	50% {
+		transform: scale(1.1);
+	}
+}
+
+@keyframes equation-chain-enter {
+	from {
+		opacity: 0;
+		transform: translateY(8px);
+	}
+
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+@keyframes equation-chain-exit {
+	from {
+		opacity: 1;
+		transform: translateY(0);
+	}
+
+	to {
+		opacity: 0;
+		transform: translateY(-8px);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.equation-piece--enter,
+	.equation-piece--exit,
+	.equation-piece--bump,
+	.equation-chain--enter,
+	.equation-chain--exit {
+		animation: none;
+	}
+}
+
+.equation-block {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 2.5rem;
+	min-height: 2.5rem;
+	padding: 0.25rem 0.5rem;
+	border: 1px solid var(--play-value-border);
+	background: var(--play-value-bg);
+	color: var(--play-value-fg);
+	font-weight: 700;
+	font-variant-numeric: tabular-nums;
+}
+
+.equation-block--placeholder {
+	background: var(--idle-bg);
+	border-color: var(--blue-muted);
+	color: var(--blue-muted);
+}
+
+.equation-block--sum {
+	background: var(--play-value-bg);
+	border-color: var(--play-value-border);
+	color: var(--play-value-fg);
+}
+
+.equation-block--target {
+	background: var(--play-target-bg);
+	border-color: var(--play-target-border);
+	color: var(--play-target-fg);
+}
+
+.equation-operator {
+	font-size: 1.125rem;
+	font-weight: 700;
+	line-height: 1;
+	color: var(--blue-dark);
+}
+
 .highscore-table-wrap {
 	overflow-x: auto;
 	border: 1px solid var(--blue-muted);

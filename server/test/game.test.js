@@ -140,6 +140,7 @@ test("create lobby accepts configurable rounds and difficulty", async (t) => {
 	assert.equal(gameState.totalRounds, 10);
 	assert.ok(gameState.options.every((option) => option.value >= -100 && option.value <= 100));
 	assert.ok(gameState.target >= -100 && gameState.target <= 100);
+	assert.notEqual(gameState.target, 0);
 });
 
 test("game starts on the second join and advances on option selection", async (t) => {

@@ -17,6 +17,8 @@ export const refs = {
 	gameTargetNumber: document.getElementById("gameTargetNumber"),
 	scoreboardList: document.getElementById("scoreboardList"),
 	optionList: document.getElementById("optionList"),
+	equationChain: document.getElementById("equationChain"),
+	equationExpr: document.getElementById("equationExpr"),
 	leaveLobbyButton: document.getElementById("leaveLobbyButton"),
 	openHighscoresFromGame: document.getElementById("openHighscoresFromGame"),
 	highscoreStatus: document.getElementById("highscoreStatus"),

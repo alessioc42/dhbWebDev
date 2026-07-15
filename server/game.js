@@ -158,7 +158,7 @@ class GameServer {
 				target += value;
 			}
 
-			if (target < range.min || target > range.max) {
+			if (target < range.min || target > range.max || target === 0) {
 				continue;
 			}
 

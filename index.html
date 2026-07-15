@@ -6,7 +6,7 @@
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="/src/assets/favicon.ico" />
     <title>Math Duel</title>
-    <link rel="stylesheet" href="/src/style.css?v=3" />
+    <link rel="stylesheet" href="/src/style.css?v=7" />
     <script>
       (function () {
         function activeGameFromHash(hash) {
@@ -116,6 +116,11 @@
               <div id="roundTimeline" class="round-timeline" hidden></div>
               <div id="gameTargetNumber" class="play-info status status--idle" hidden></div>
               <div id="optionList" class="option-grid option-grid--rect"></div>
+              <div id="equationChain" class="equation-chain" hidden>
+                <div id="equationExpr" class="equation-chain__expr" role="group" aria-label="Your equation">
+                  <span class="equation-piece equation-block equation-block--term equation-block--placeholder" aria-label="0">0</span>
+                </div>
+              </div>
             </section>
 
             <section class="game-scoreboard stack">
@@ -166,6 +171,6 @@
     <script>
       window.GAME_SERVER_HOST = window.GAME_SERVER_HOST || window.location.origin;
     </script>
-    <script type="module" src="/src/main.js"></script>
+    <script type="module" src="/src/main.js?v=7"></script>
   </body>
 </html>
