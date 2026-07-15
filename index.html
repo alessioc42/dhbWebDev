@@ -13,9 +13,6 @@
           var parts = String(hash || "#/").replace(/^#\/?/, "").split("/").filter(Boolean);
           var first = (parts[0] || "").toLowerCase();
           if (first === "sumgame") return "sumGame";
-          if (first === "onlinegame") return "sumGame";
-          if (first === "offlinegame") return "offlineGame";
-          if (first === "lobby" || first === "game" || first === "highscores") return "sumGame";
           return "home";
         }
 
@@ -158,14 +155,6 @@
           </div>
         </section>
       </div>
-
-      <section id="offlineGameApp" class="page" data-screen="offline">
-        <header class="page-head">
-          <a class="btn btn-back" id="offlineBackHomeButton" href="#/">Back to games</a>
-          <h1 class="page-title">Zehnerübergang</h1>
-        </header>
-        Das hätte nicht passieren sollen
-      </section>
     </main>
 
     <script>

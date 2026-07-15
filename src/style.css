@@ -56,14 +56,12 @@ body {
 }
 
 #homeScreen,
-#sumGameApp,
-#offlineGameApp {
+#sumGameApp {
 	display: none;
 }
 
 html[data-active-game="home"] #homeScreen,
-html[data-active-game="sumGame"] #sumGameApp,
-html[data-active-game="offlineGame"] #offlineGameApp {
+html[data-active-game="sumGame"] #sumGameApp {
 	display: block;
 }
 
