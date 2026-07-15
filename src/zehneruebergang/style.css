@@ -11,7 +11,8 @@ body{ /* allgemeine Seiteneinstellungen */
 
 #nameSpan,
 #pointsSpan,
-#timeSpan{
+#timeSpan,
+#finalName{
     color: #0984e3;
 }
 
@@ -71,6 +72,14 @@ body{ /* allgemeine Seiteneinstellungen */
     border-radius: 15px;
 
     box-shadow: 0 4px 8px rgba(0,0,0,.15);
+}
+
+.hintText{
+    min-height: 1.5rem;
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #2d3436;
 }
 
 #num1Span{
@@ -176,4 +185,8 @@ nav {
         font-size: 1rem;
         line-height: 1.2;
     }
+}
+
+#timeOver{
+    color: red;
 }

@@ -17,6 +17,8 @@ const num1Span = document.querySelector("#num1Span");
 const num2Span = document.querySelector("#num2Span");
 const solutionField = document.querySelector("#solutionInput");
 const form = document.querySelector("#form");
+const hint = document.querySelector("#hint");
+const hintText = document.querySelector("#hintText");
 
 const restartBtn = document.querySelector("#restartBtn");
 const returnBtn = document.querySelector("#returnBtn");
@@ -46,6 +48,18 @@ const game = {
     Funktionen
 */
 
+function giveHint() {
+    if((game.num1 + game.num2) % 10 === 0){
+        hintText.textContent = "Zähle mit der Hand ab ✋"
+    }else{
+        const nextTen = Math.ceil(game.num1 / 10) * 10;
+        const addToNextTen = nextTen - game.num1;
+
+        hintText.textContent = `${game.num1} + ${addToNextTen} = ${nextTen}`;
+    }
+    solutionField.focus();
+}
+
 function genNewTask() { //generiert neue Zahlen und zeigt diese an
     game.solutionChecked = false;    //wichtig für checkSolution()
     game.num1 = Math.floor(Math.random()*100)+1;
@@ -56,6 +70,7 @@ function genNewTask() { //generiert neue Zahlen und zeigt diese an
 
     solutionField.style.backgroundColor = 'white';   //Antwortfeld wird wieder weiß gestellt
     solutionField.value = "";
+    hintText.textContent = "";
     solutionField.focus();
     game.solutionChecked = false;
 }
@@ -72,7 +87,6 @@ function checkSolution() {
         successAudio.play();
     }else{
         solutionField.style.backgroundColor = "#fd4a4a91";
-        if (!game.solutionChecked) game.score--;
         game.solutionChecked = true;
     }
     scoreSpan.textContent = game.score;
@@ -121,6 +135,7 @@ function gameOver() {
 function startGame(event) {
     if (event) event.preventDefault();
 
+    if (!String(nameInput.value.trim())) return;    //Name muss eingegeben sein zum Starten
     game.userName = String(nameInput.value.trim()) || "Anonym";
     localStorage.setItem(USERNAME_KEY, game.userName);
 
@@ -149,15 +164,7 @@ function startTimer() {
         clearInterval(game.timer);
         gameOver();
        }
-    }, 1000);
-}
-
-function startGameFromForm(event) {
-    if (event) event.preventDefault();
-
-    game.userName = String(nameInput.value.trim()) || "Anonym";
-    localStorage.setItem(USERNAME_KEY, game.userName);
-    startGame();
+    }, 1000);   //1000 Millisekunden = 1 Sekunde
 }
 
 function renderPage(){  //routing
@@ -165,7 +172,7 @@ function renderPage(){  //routing
         location.hash = "#start";
     }
 
-    let hash = location.hash;
+    const hash = location.hash;
     switch (hash) {
         case "#start":
             startPage.style.display = "block";
@@ -205,7 +212,7 @@ function renderPage(){  //routing
 addEventListener("DOMContentLoaded", (event) => {   //erst wenn html geladen und skript ausgeführt wurde
     window.addEventListener("hashchange", renderPage);
     window.addEventListener("load", () => {
-        renderPage,
+        renderPage(),
         location.hash = "#start";
     });
 
@@ -230,4 +237,5 @@ addEventListener("DOMContentLoaded", (event) => {   //erst wenn html geladen und
 
     startForm.addEventListener("submit", startGame);
     startBtn.addEventListener("click", startGame);
+    hint.addEventListener("click", giveHint);
 });
