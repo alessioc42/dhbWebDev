@@ -1,6 +1,5 @@
 import { parseSiteHash, showGameScreen, syncShellFromHash } from "./site.js";
 
-const APP_VERSION = "7";
 let activeGame = null;
 let sumGameModule;
 let offlineModule;
@@ -34,7 +33,7 @@ async function routeSite() {
 
 	try {
 		if (game === "sumGame") {
-			sumGameModule = await import(`./sumGame/main.js?v=${APP_VERSION}`);
+			sumGameModule = await import("./sumGame/main.js");
 			if (token !== routeToken) {
 				return;
 			}
@@ -43,7 +42,7 @@ async function routeSite() {
 		}
 
 		if (game === "offlineGame") {
-			offlineModule = await import(`./offlineGame/main.js?v=${APP_VERSION}`);
+			offlineModule = await import("./offlineGame/main.js");
 			if (token !== routeToken) {
 				return;
 			}

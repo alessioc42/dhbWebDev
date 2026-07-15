@@ -103,16 +103,9 @@ export function createStaticFileHandler(rootDir, options = {}) {
 		}
 
 		const contentType = MIME_TYPES[extname(filePath).toLowerCase()] || "application/octet-stream";
-		const extension = extname(filePath).toLowerCase();
-		const cacheableAsset = extension === ".woff" || extension === ".woff2" || extension === ".ico";
-		const cacheControl =
-			process.env.NODE_ENV === "production" && cacheableAsset
-				? "public, max-age=3600"
-				: "no-cache";
-
 		context.status(200);
 		context.setHeader("Content-Type", contentType);
-		context.setHeader("Cache-Control", cacheControl);
+		context.setHeader("Cache-Control", "public, max-age=3600");
 
 		if (context.req.method === "HEAD") {
 			context.res.end();
