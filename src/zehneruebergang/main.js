@@ -17,6 +17,8 @@ const num1Span = document.querySelector("#num1Span");
 const num2Span = document.querySelector("#num2Span");
 const solutionField = document.querySelector("#solutionInput");
 const form = document.querySelector("#form");
+const hint = document.querySelector("#hint");
+const hintText = document.querySelector("#hintText");
 
 const restartBtn = document.querySelector("#restartBtn");
 const returnBtn = document.querySelector("#returnBtn");
@@ -46,6 +48,17 @@ const game = {
     Funktionen
 */
 
+function giveHint() {
+    if((game.num1 + game.num2) % 10 === 0){
+        hintText.textContent = "Zähle mit der Hand ab ✋"
+    }else{
+        const nextTen = Math.ceil(game.num1 / 10) * 10;
+        const addToNextTen = nextTen - game.num1;
+
+        hintText.textContent = `${game.num1} + ${addToNextTen} = ${nextTen}`;
+    }
+}
+
 function genNewTask() { //generiert neue Zahlen und zeigt diese an
     game.solutionChecked = false;    //wichtig für checkSolution()
     game.num1 = Math.floor(Math.random()*100)+1;
@@ -56,6 +69,7 @@ function genNewTask() { //generiert neue Zahlen und zeigt diese an
 
     solutionField.style.backgroundColor = 'white';   //Antwortfeld wird wieder weiß gestellt
     solutionField.value = "";
+    hintText.textContent = "";
     solutionField.focus();
     game.solutionChecked = false;
 }
@@ -222,4 +236,5 @@ addEventListener("DOMContentLoaded", (event) => {   //erst wenn html geladen und
 
     startForm.addEventListener("submit", startGame);
     startBtn.addEventListener("click", startGame);
+    hint.addEventListener("click", giveHint);
 });
