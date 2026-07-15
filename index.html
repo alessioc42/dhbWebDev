@@ -41,7 +41,7 @@
           <p class="meta">Choose a game mode.</p>
         </header>
         <nav class="stack">
-          <a class="nav-link" href="#/sumGame/lobby">Calculator race</a>
+          <a class="nav-link" href="#/sumGame/lobby">Rechenrennen</a>
           <a class="nav-link" href="src/zehneruebergang/index.html">Offline game</a>
         </nav>
       </section>
@@ -49,8 +49,8 @@
       <div id="sumGameApp">
         <section id="lobbyScreen" class="page" data-screen="lobby">
           <header class="page-head">
-            <a class="btn btn-back" href="#/">Back to games</a>
-            <h1 class="page-title">Math Duel</h1>
+            <a class="btn btn-back" href="#/">Zurück zu den Spielen</a>
+            <h1 class="page-title">Mathe-Duell</h1>
             <p id="lobbyStatus" class="status status--idle" hidden></p>
           </header>
 
@@ -61,10 +61,10 @@
             </label>
 
             <form id="createLobbyForm" class="panel stack">
-              <h2 class="panel-title">Create lobby</h2>
+              <h2 class="panel-title">Lobby erstellen</h2>
               <label class="field">
                 <div class="field-range__head">
-                  <span class="field-label">Rounds</span>
+                  <span class="field-label">Runden</span>
                   <output class="field-range__value" id="roundsValue" for="roundsInput">5</output>
                 </div>
                 <input
@@ -78,36 +78,36 @@
                 />
               </label>
               <label class="field">
-                <span class="field-label">Difficulty</span>
+                <span class="field-label">Schwierigkeit</span>
                 <select class="field-input" id="difficultyInput" name="difficulty">
-                  <option value="easy">Easy (0–30)</option>
-                  <option value="medium" selected>Medium (0–70)</option>
-                  <option value="hard">Hard (0–100)</option>
-                  <option value="expert">Expert (−100–100)</option>
+                  <option value="easy">Leicht (0–30)</option>
+                  <option value="medium" selected>Mittel (0–70)</option>
+                  <option value="hard">Schwer (0–100)</option>
+                  <option value="expert">Experte (−100–100)</option>
                 </select>
               </label>
-              <button class="btn btn-primary" type="submit">Create lobby</button>
+              <button class="btn btn-primary" type="submit">Lobby erstellen</button>
             </form>
 
             <form id="joinLobbyForm" class="panel stack">
-              <h2 class="panel-title">Join lobby</h2>
+              <h2 class="panel-title">Lobby beitreten</h2>
               <label class="field">
                 <span class="field-label">Code</span>
                 <input class="field-input" id="joinCodeInput" name="code" maxlength="4" />
               </label>
-              <button class="btn btn-primary" type="submit">Join lobby</button>
+              <button class="btn btn-primary" type="submit">Beitreten</button>
             </form>
 
             <div class="nav-actions">
-              <button id="openHighscoresFromLobby" class="btn btn-secondary" type="button">Highscores</button>
+              <button id="openHighscoresFromLobby" class="btn btn-secondary" type="button">Bestenliste</button>
             </div>
           </div>
         </section>
 
         <section id="gameScreen" class="page" data-screen="game">
           <header class="page-head">
-            <h1 class="page-title">Game</h1>
-            <p id="gameLobbyCode" class="meta">No lobby connected.</p>
+            <h1 class="page-title">Spiel</h1>
+            <p id="gameLobbyCode" class="meta">Keine Lobby verbunden.</p>
             <p id="gameStatus" class="status status--idle" hidden></p>
           </header>
 
@@ -117,40 +117,40 @@
               <div id="gameTargetNumber" class="play-info status status--idle" hidden></div>
               <div id="optionList" class="option-grid option-grid--rect"></div>
               <div id="equationChain" class="equation-chain" hidden>
-                <div id="equationExpr" class="equation-chain__expr" role="group" aria-label="Your equation">
+                <div id="equationExpr" class="equation-chain__expr" role="group" aria-label="Deine Rechnung">
                   <span class="equation-piece equation-block equation-block--term equation-block--placeholder" aria-label="0">0</span>
                 </div>
               </div>
             </section>
 
             <section class="game-scoreboard stack">
-              <h2 class="section-title">Scoreboard</h2>
+              <h2 class="section-title">Punktestand</h2>
               <ul id="scoreboardList" class="scoreboard"></ul>
             </section>
 
             <div class="nav-actions">
-              <button id="leaveLobbyButton" class="btn btn-back" type="button">Leave lobby</button>
-              <button id="openHighscoresFromGame" class="btn btn-secondary" type="button">Highscores</button>
+              <button id="leaveLobbyButton" class="btn btn-back" type="button">Lobby verlassen</button>
+              <button id="openHighscoresFromGame" class="btn btn-secondary" type="button">Bestenliste</button>
             </div>
           </div>
         </section>
 
         <section id="highscoreScreen" class="page" data-screen="highscores">
           <header class="page-head">
-            <button id="backToLobbyButton" class="btn btn-back" type="button">Back to lobby</button>
-            <h1 class="page-title">Highscores</h1>
+            <button id="backToLobbyButton" class="btn btn-back" type="button">Zurück zur Lobby</button>
+            <h1 class="page-title">Bestenliste</h1>
             <p id="highscoreStatus" class="status status--info" hidden></p>
           </header>
           <div class="highscore-table-wrap">
             <table class="highscore-table">
               <thead>
                 <tr>
-                  <th scope="col">Played</th>
-                  <th scope="col">You</th>
-                  <th scope="col">Opponent</th>
-                  <th scope="col">Your score</th>
-                  <th scope="col">Opponent score</th>
-                  <th scope="col">High score</th>
+                  <th scope="col">Gespielt</th>
+                  <th scope="col">Du</th>
+                  <th scope="col">Gegner</th>
+                  <th scope="col">Deine Punkte</th>
+                  <th scope="col">Gegnerpunkte</th>
+                  <th scope="col">Höchstpunktzahl</th>
                 </tr>
               </thead>
               <tbody id="highscoreList"></tbody>

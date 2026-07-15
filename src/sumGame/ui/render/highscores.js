@@ -23,7 +23,7 @@ export function renderHighscoreView() {
 		const cell = document.createElement("td");
 		cell.colSpan = 6;
 		cell.className = "highscore-table__empty";
-		cell.textContent = "No finished games yet.";
+		cell.textContent = "Noch keine abgeschlossenen Spiele.";
 		row.append(cell);
 		refs.highscoreList.append(row);
 		return;
@@ -32,7 +32,7 @@ export function renderHighscoreView() {
 	for (const entry of highscores) {
 		const row = document.createElement("tr");
 		row.append(
-			createCell(new Date(entry.playedAt).toLocaleString()),
+			createCell(new Date(entry.playedAt).toLocaleString("de-DE")),
 			createCell(entry.ownName),
 			createCell(entry.opponentName),
 			createCell(formatScore(entry.ownScore), "highscore-table__score"),

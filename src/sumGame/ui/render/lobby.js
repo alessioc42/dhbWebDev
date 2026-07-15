@@ -4,6 +4,6 @@ import { refs } from "../refs.js";
 
 export function renderLobbyView() {
 	const lobbyCode = state.session?.lobbyCode;
-	const message = state.feedback.lobby || (lobbyCode ? `Lobby code: ${lobbyCode}.` : "");
+	const message = state.feedback.lobby || (lobbyCode ? `Lobby-Code: ${lobbyCode}.` : "");
 	applyStatusClass(refs.lobbyStatus, message);
 }

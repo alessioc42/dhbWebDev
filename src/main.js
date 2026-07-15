@@ -58,7 +58,7 @@ async function routeSite() {
 			showGameScreen("sumGame");
 			const status = document.getElementById("lobbyStatus");
 			if (status) {
-				status.textContent = `Failed to load Calculator race: ${error.message}`;
+				status.textContent = `Rechenrennen konnte nicht geladen werden: ${error.message}`;
 			}
 			return;
 		}

@@ -42,7 +42,7 @@ function finalizeGame(finalResult) {
 				playedAt: finalResult.finishedAt || new Date().toISOString(),
 				lobbyCode: finalResult.lobbyCode || session.lobbyCode,
 				ownName: session.username,
-				opponentName: opponentEntry?.username || "Unknown",
+				opponentName: opponentEntry?.username || "Unbekannt",
 				ownScore: ownEntry.score,
 				opponentScore: opponentEntry?.score ?? 0,
 				highScore: Math.max(ownEntry.score, opponentEntry?.score ?? 0),
@@ -53,7 +53,7 @@ function finalizeGame(finalResult) {
 
 	closeStream();
 	clearSession();
-	state.feedback.game = "Game finished.";
+	state.feedback.game = "Spiel beendet.";
 	state.feedback.highscores = "";
 	state.feedback.lobby = "";
 	setRoute("highscores");
@@ -73,7 +73,7 @@ function handleSessionLost(message) {
 function handleStreamEvent(event) {
 	switch (event.event) {
 		case "error":
-			handleSessionLost(event.data?.message || "Stream error.");
+			handleSessionLost(event.data?.message || "Verbindungsfehler.");
 			break;
 		case "lobby_state":
 			state.lobby = event.data;
@@ -87,7 +87,7 @@ function handleStreamEvent(event) {
 		case "game_started":
 			state.game = event.data;
 			clearRoundHistory();
-			setFeedback("game", "Game started.");
+			setFeedback("game", "Spiel gestartet.");
 			if (state.route !== "highscores") {
 				state.route = "game";
 			}
@@ -108,18 +108,18 @@ function handleStreamEvent(event) {
 			break;
 		case "round_result":
 			recordRoundResult(event.data);
-			setFeedback("game", `Round ${event.data.roundNumber} complete.`);
+			setFeedback("game", `Runde ${event.data.roundNumber} abgeschlossen.`);
 			break;
 		case "player_joined":
-			setFeedback("game", `${event.data.username} joined the lobby.`);
+			setFeedback("game", `${event.data.username} ist der Lobby beigetreten.`);
 			break;
 		case "player_left":
-			setFeedback("game", `${event.data.username} left the lobby.`);
+			setFeedback("game", `${event.data.username} hat die Lobby verlassen.`);
 			break;
 		case "lobby_closed":
 			closeStream();
 			clearSession();
-			setFeedback("lobby", "Lobby closed.");
+			setFeedback("lobby", "Lobby geschlossen.");
 			state.route = "lobby";
 			renderApp();
 			break;

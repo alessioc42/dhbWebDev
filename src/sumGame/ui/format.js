@@ -41,5 +41,5 @@ export function formatRoundResult(result) {
 		return "";
 	}
 
-	return `Round ${result.roundNumber} won by ${result.winner.username} with ${formatScore(result.roundScore)} points in ${formatScore(result.durationSeconds)} seconds.`;
+	return `Runde ${result.roundNumber} gewonnen von ${result.winner.username} mit ${formatScore(result.roundScore)} Punkten in ${formatScore(result.durationSeconds)} Sekunden.`;
 }

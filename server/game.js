@@ -257,7 +257,7 @@ class GameServer {
 			return isRecord(payload) ? payload : {};
 		} catch (error) {
 			if (error instanceof SyntaxError) {
-				this.#sendJsonError(ctx, 400, "Invalid JSON payload.");
+				this.#sendJsonError(ctx, 400, "Ungültige JSON-Daten.");
 				return null;
 			}
 
@@ -507,7 +507,7 @@ class GameServer {
 
 		const username = normalizeText(getField(payload, "USERNAME", "username"));
 		if (!username) {
-			this.#sendJsonError(ctx, 400, "USERNAME is required.");
+			this.#sendJsonError(ctx, 400, "Benutzername erforderlich.");
 			return;
 		}
 
@@ -555,28 +555,28 @@ class GameServer {
 		const lobbyCode = normalizeText(getField(payload, "LOBBY_CODE", "lobbyCode")).toUpperCase();
 
 		if (!username) {
-			this.#sendJsonError(ctx, 400, "USERNAME is required.");
+			this.#sendJsonError(ctx, 400, "Benutzername erforderlich.");
 			return;
 		}
 
 		if (!lobbyCode) {
-			this.#sendJsonError(ctx, 400, "LOBBY_CODE is required.");
+			this.#sendJsonError(ctx, 400, "Lobby-Code erforderlich.");
 			return;
 		}
 
 		const lobby = this.lobbies.get(lobbyCode);
 		if (!lobby || lobby.closed) {
-			this.#sendJsonError(ctx, 404, "Lobby not found.");
+			this.#sendJsonError(ctx, 404, "Lobby nicht gefunden.");
 			return;
 		}
 
 		if (lobby.game?.phase === "finished") {
-			this.#sendJsonError(ctx, 409, "Lobby has finished its game.");
+			this.#sendJsonError(ctx, 409, "Die Lobby hat ihr Spiel bereits beendet.");
 			return;
 		}
 
 		if (lobby.players.size >= 2) {
-			this.#sendJsonError(ctx, 409, "Lobby is full.");
+			this.#sendJsonError(ctx, 409, "Lobby ist voll.");
 			return;
 		}
 
@@ -635,19 +635,19 @@ class GameServer {
 		const message = getField(payload, "MESSAGE", "message");
 
 		if (!userSecret) {
-			this.#sendJsonError(ctx, 400, "USER_SECRET is required.");
+			this.#sendJsonError(ctx, 400, "Benutzer-Schlüssel erforderlich.");
 			return;
 		}
 
 		const player = this.playersBySecret.get(userSecret);
 		if (!player) {
-			this.#sendJsonError(ctx, 401, "Invalid user secret.");
+			this.#sendJsonError(ctx, 401, "Ungültiger Benutzer-Schlüssel.");
 			return;
 		}
 
 		const lobby = this.lobbies.get(player.lobbyCode);
 		if (!lobby || lobby.closed) {
-			this.#sendJsonError(ctx, 404, "Lobby not found.");
+			this.#sendJsonError(ctx, 404, "Lobby nicht gefunden.");
 			return;
 		}
 
@@ -678,7 +678,7 @@ class GameServer {
 
 		const userSecret = normalizeText(getField(payload, "USER_SECRET", "userSecret"));
 		if (!userSecret) {
-			this.#sendJsonError(ctx, 400, "USER_SECRET is required.");
+			this.#sendJsonError(ctx, 400, "Benutzer-Schlüssel erforderlich.");
 			return;
 		}
 
@@ -702,42 +702,42 @@ class GameServer {
 		const optionId = normalizeText(getField(payload, "OPTION_ID", "optionId"));
 
 		if (!userSecret) {
-			this.#sendJsonError(ctx, 400, "USER_SECRET is required.");
+			this.#sendJsonError(ctx, 400, "Benutzer-Schlüssel erforderlich.");
 			return;
 		}
 
 		if (!optionId) {
-			this.#sendJsonError(ctx, 400, "OPTION_ID is required.");
+			this.#sendJsonError(ctx, 400, "Options-ID erforderlich.");
 			return;
 		}
 
 		const player = this.playersBySecret.get(userSecret);
 		if (!player) {
-			this.#sendJsonError(ctx, 401, "Invalid user secret.");
+			this.#sendJsonError(ctx, 401, "Ungültiger Benutzer-Schlüssel.");
 			return;
 		}
 
 		const lobby = this.lobbies.get(player.lobbyCode);
 		if (!lobby || lobby.closed) {
-			this.#sendJsonError(ctx, 404, "Lobby not found.");
+			this.#sendJsonError(ctx, 404, "Lobby nicht gefunden.");
 			return;
 		}
 
 		const game = lobby.game;
 		if (!game || game.phase !== "playing" || !game.currentRound) {
-			this.#sendJsonError(ctx, 409, "Game is not active.");
+			this.#sendJsonError(ctx, 409, "Spiel ist nicht aktiv.");
 			return;
 		}
 
 		const round = game.currentRound;
 		if (round.finished) {
-			this.#sendJsonError(ctx, 409, "Round has already finished.");
+			this.#sendJsonError(ctx, 409, "Runde ist bereits beendet.");
 			return;
 		}
 
 		const option = round.options.find((entry) => entry.id === optionId);
 		if (!option) {
-			this.#sendJsonError(ctx, 404, "Option not found.");
+			this.#sendJsonError(ctx, 404, "Zahl nicht gefunden.");
 			return;
 		}
 
@@ -773,7 +773,7 @@ class GameServer {
 		const userSecret = normalizeText(getField(params, "USER_SECRET", "userSecret"));
 
 		if (!lobbyCode || !userSecret) {
-			client.send({ event: "error", data: { message: "LOBBY_CODE and USER_SECRET are required." } });
+			client.send({ event: "error", data: { message: "Lobby-Code und Benutzer-Schlüssel erforderlich." } });
 			client.close();
 			return;
 		}
@@ -781,7 +781,7 @@ class GameServer {
 		const player = this.playersBySecret.get(userSecret);
 		const lobby = this.lobbies.get(lobbyCode);
 		if (!player || !lobby || player.lobbyCode !== lobbyCode || lobby.closed) {
-			client.send({ event: "error", data: { message: "Lobby or user secret not found." } });
+			client.send({ event: "error", data: { message: "Lobby oder Benutzer-Schlüssel nicht gefunden." } });
 			client.close();
 			return;
 		}

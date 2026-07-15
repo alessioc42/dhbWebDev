@@ -36,7 +36,7 @@ class GameClient {
 		}
 
 		if (!response.ok) {
-			const error = new Error(payload?.error || response.statusText || "Request failed.");
+			const error = new Error(payload?.error || response.statusText || "Anfrage fehlgeschlagen.");
 			error.status = response.status;
 			error.payload = payload;
 			throw error;
@@ -110,7 +110,7 @@ class GameClient {
 
 		if (!response.ok || !response.body) {
 			const text = await response.text();
-			throw new Error(text || response.statusText || "Unable to open lobby stream.");
+			throw new Error(text || response.statusText || "Lobby-Verbindung konnte nicht geöffnet werden.");
 		}
 
 		const reader = response.body.getReader();

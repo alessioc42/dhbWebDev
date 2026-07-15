@@ -45,19 +45,19 @@ function renderRoundTimeline(gameState, localPlayerSecret) {
 		if (outcomes.has(roundNumber)) {
 			const won = outcomes.get(roundNumber);
 			slot.classList.add(won ? "round-timeline__slot--won" : "round-timeline__slot--lost");
-			slot.textContent = won ? "W" : "L";
-			slot.title = `Round ${roundNumber}: ${won ? "Won" : "Lost"}`;
-			slot.setAttribute("aria-label", `Round ${roundNumber}, ${won ? "won" : "lost"}`);
+			slot.textContent = won ? "G" : "V";
+			slot.title = `Runde ${roundNumber}: ${won ? "Gewonnen" : "Verloren"}`;
+			slot.setAttribute("aria-label", `Runde ${roundNumber}, ${won ? "gewonnen" : "verloren"}`);
 		} else if (roundNumber === currentRound) {
 			slot.classList.add("round-timeline__slot--current");
 			slot.textContent = String(roundNumber);
-			slot.title = `Round ${roundNumber}: in progress`;
-			slot.setAttribute("aria-label", `Round ${roundNumber}, in progress`);
+			slot.title = `Runde ${roundNumber}: läuft`;
+			slot.setAttribute("aria-label", `Runde ${roundNumber}, läuft`);
 		} else {
 			slot.classList.add("round-timeline__slot--pending");
 			slot.textContent = String(roundNumber);
-			slot.title = `Round ${roundNumber}: pending`;
-			slot.setAttribute("aria-label", `Round ${roundNumber}, pending`);
+			slot.title = `Runde ${roundNumber}: ausstehend`;
+			slot.setAttribute("aria-label", `Runde ${roundNumber}, ausstehend`);
 		}
 
 		fragment.append(slot);
@@ -405,7 +405,7 @@ function renderPlayInfo(gameState, localPlayer) {
 		return;
 	}
 
-	renderPlayInfoWaiting("Waiting for the second player.");
+	renderPlayInfoWaiting("Warte auf den zweiten Spieler.");
 }
 
 function renderScoreboard(localPlayerSecret, players) {
@@ -414,7 +414,7 @@ function renderScoreboard(localPlayerSecret, players) {
 		const item = document.createElement("li");
 		const isLocal = player.userSecret === localPlayerSecret;
 		item.className = isLocal ? "scoreboard-row scoreboard-row--local" : "scoreboard-row";
-		item.textContent = `${player.username}: round ${formatScore(player.roundValue)} | total ${formatScore(player.totalScore)}`;
+		item.textContent = `${player.username}: Runde ${formatScore(player.roundValue)} | gesamt ${formatScore(player.totalScore)}`;
 		refs.scoreboardList.append(item);
 	}
 }
@@ -434,7 +434,7 @@ function renderOptions(gameState, localPlayer, setFeedback, renderApp) {
 	if (!canChoose) {
 		const message = document.createElement("p");
 		message.className = "option-empty";
-		message.textContent = "No options are available yet.";
+		message.textContent = "Noch keine Zahlen verfügbar.";
 		refs.optionList.append(message);
 		return;
 	}
@@ -484,8 +484,8 @@ export function renderGameView(setFeedback, renderApp) {
 	const settingsLabel = formatLobbySettings(state.lobby?.settings);
 	const lobbyPrefix = settingsLabel ? `${settingsLabel} · ` : "";
 	refs.gameLobbyCode.textContent = state.session
-		? `${lobbyPrefix}Lobby code: ${state.session.lobbyCode}`
-		: "No lobby connected.";
+		? `${lobbyPrefix}Lobby-Code: ${state.session.lobbyCode}`
+		: "Keine Lobby verbunden.";
 
 	renderRoundTimeline(gameState, state.session?.userSecret);
 	renderPlayInfo(gameState, localPlayer);

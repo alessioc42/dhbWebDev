@@ -15,7 +15,7 @@ export async function handleCreateLobby(event) {
 	event.preventDefault();
 	const username = getUsername();
 	if (!username) {
-		setFeedback("lobby", "Enter a name to create a lobby.");
+		setFeedback("lobby", "Gib einen Namen ein, um eine Lobby zu erstellen.");
 		return;
 	}
 
@@ -30,7 +30,7 @@ export async function handleCreateLobby(event) {
 		saveSession(state.session);
 		window.location.hash = gameHash("game");
 		state.route = "game";
-		setFeedback("game", `Lobby ${result.lobbyCode} created. Waiting for the second player.`);
+		setFeedback("game", `Lobby ${result.lobbyCode} erstellt. Warte auf den zweiten Spieler.`);
 		renderApp();
 		await connectSession();
 	} catch (error) {
@@ -43,7 +43,7 @@ export async function handleJoinLobby(event) {
 	const username = getUsername();
 	const lobbyCode = refs.joinCodeInput.value.trim().toUpperCase();
 	if (!username || !lobbyCode) {
-		setFeedback("lobby", "Enter a name and lobby code to join.");
+		setFeedback("lobby", "Gib einen Namen und einen Lobby-Code ein.");
 		return;
 	}
 
@@ -57,7 +57,7 @@ export async function handleJoinLobby(event) {
 		saveSession(state.session);
 		window.location.hash = gameHash("game");
 		state.route = "game";
-		setFeedback("game", `Joined lobby ${result.lobbyCode}.`);
+		setFeedback("game", `Lobby ${result.lobbyCode} beigetreten.`);
 		renderApp();
 		await connectSession();
 	} catch (error) {
@@ -80,7 +80,7 @@ export async function leaveLobby() {
 	state.lastRoundResult = null;
 	window.location.hash = gameHash("lobby");
 	state.route = "lobby";
-	setFeedback("lobby", "Left the lobby.");
+	setFeedback("lobby", "Lobby verlassen.");
 }
 
 export function openHighscores() {

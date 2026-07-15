@@ -1,6 +1,6 @@
-const ERROR_PATTERN = /enter a name|failed|error|unable|invalid|timed out/i;
-const SUCCESS_PATTERN = /joined|created|finished|won|round \d+ won|left the lobby/i;
-const IDLE_PATTERN = /^(ready\.|idle\.|waiting)/i;
+const ERROR_PATTERN = /gib einen namen|fehlgeschlagen|fehler|ungültig|timeout|nicht gefunden|erforderlich|nicht aktiv/i;
+const SUCCESS_PATTERN = /beigetreten|erstellt|beendet|gewonnen|runde \d+ abgeschlossen|verlassen|gestartet/i;
+const IDLE_PATTERN = /^(bereit\.|wartet)/i;
 const NEUTRAL_PATTERN = /^(ready\.|idle\.|stored games\.)?$/i;
 
 export function isNeutralFeedback(message) {
