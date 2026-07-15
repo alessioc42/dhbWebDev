@@ -121,6 +121,7 @@ function gameOver() {
 function startGame(event) {
     if (event) event.preventDefault();
 
+    if (!String(nameInput.value.trim())) return;    //Name muss eingegeben sein zum Starten
     game.userName = String(nameInput.value.trim()) || "Anonym";
     localStorage.setItem(USERNAME_KEY, game.userName);
 
