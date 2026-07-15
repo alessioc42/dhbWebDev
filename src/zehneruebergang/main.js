@@ -72,7 +72,6 @@ function checkSolution() {
         successAudio.play();
     }else{
         solutionField.style.backgroundColor = "#fd4a4a91";
-        if (!game.solutionChecked) game.score--;
         game.solutionChecked = true;
     }
     scoreSpan.textContent = game.score;
@@ -151,14 +150,6 @@ function startTimer() {
         gameOver();
        }
     }, 1000);
-}
-
-function startGameFromForm(event) {
-    if (event) event.preventDefault();
-
-    game.userName = String(nameInput.value.trim()) || "Anonym";
-    localStorage.setItem(USERNAME_KEY, game.userName);
-    startGame();
 }
 
 function renderPage(){  //routing
