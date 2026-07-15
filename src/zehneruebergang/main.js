@@ -149,7 +149,7 @@ function startTimer() {
         clearInterval(game.timer);
         gameOver();
        }
-    }, 1000);
+    }, 1000);   //1000 Millisekunden = 1 Sekunde
 }
 
 function renderPage(){  //routing
