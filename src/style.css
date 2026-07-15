@@ -23,6 +23,9 @@
 	--play-difference-border: #b8860b;
 	--play-difference-fg: #6b4a00;
 	--cell-size: 3.25rem;
+	--disabled-bg: #e8edf4;
+	--disabled-border: #b8c4d8;
+	--disabled-fg: #8a96a8;
 }
 
 *,
@@ -181,6 +184,18 @@ html[data-active-game="sumGame"] #sumGameApp {
 	outline-offset: 0;
 }
 
+.field-input:disabled,
+select.field-input:disabled {
+	background: var(--disabled-bg);
+	border-color: var(--disabled-border);
+	color: var(--disabled-fg);
+	cursor: not-allowed;
+}
+
+.field-input:disabled::placeholder {
+	color: var(--disabled-fg);
+}
+
 .field-range__head {
 	display: flex;
 	justify-content: space-between;
@@ -273,6 +288,21 @@ input[type="range"].styled-slider:focus-visible {
 	outline: none;
 }
 
+input[type="range"].styled-slider:disabled {
+	cursor: not-allowed;
+	opacity: 0.65;
+}
+
+input[type="range"].styled-slider:disabled::-webkit-slider-thumb {
+	background: var(--disabled-fg);
+	cursor: not-allowed;
+}
+
+input[type="range"].styled-slider:disabled::-moz-range-thumb {
+	background: var(--disabled-fg);
+	cursor: not-allowed;
+}
+
 .btn {
 	display: inline-block;
 	border: 1px solid var(--blue);
@@ -286,8 +316,29 @@ input[type="range"].styled-slider:focus-visible {
 	text-align: center;
 }
 
-.btn:hover {
+.btn:hover:not(:disabled) {
 	background: var(--blue-light);
+}
+
+.btn:disabled {
+	background: var(--disabled-bg);
+	border-color: var(--disabled-border);
+	color: var(--disabled-fg);
+	cursor: not-allowed;
+	pointer-events: none;
+	box-shadow: none;
+}
+
+.btn-primary:disabled {
+	background: var(--disabled-bg);
+	border-color: var(--disabled-border);
+	color: var(--disabled-fg);
+}
+
+.btn-secondary:disabled {
+	background: var(--disabled-bg);
+	border-color: var(--disabled-border);
+	color: var(--disabled-fg);
 }
 
 .btn-primary {
@@ -296,7 +347,7 @@ input[type="range"].styled-slider:focus-visible {
 	color: #fff;
 }
 
-.btn-primary:hover {
+.btn-primary:hover:not(:disabled) {
 	background: var(--blue-dark);
 }
 

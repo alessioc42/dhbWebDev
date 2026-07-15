@@ -17,6 +17,8 @@ export function renderApp() {
 	renderHighscoreView();
 }
 
+export { renderLobbyView } from "./lobby.js";
+
 function resolveGamePhase() {
 	if (state.route !== "game") {
 		return "";

@@ -2,6 +2,7 @@ import { client } from "../network/client.js";
 import { connectSession } from "../network/stream.js";
 import { readCreateLobbySettings } from "../game-settings.js";
 import { refs } from "../ui/refs.js";
+import { canCreateLobby, canJoinLobby } from "../ui/render/lobby.js";
 import { renderApp, setFeedback } from "../ui/render/index.js";
 import { gameHash } from "./routes.js";
 import { clearSession, closeStream, state } from "./state.js";
@@ -13,11 +14,13 @@ function getUsername() {
 
 export async function handleCreateLobby(event) {
 	event.preventDefault();
-	const username = getUsername();
-	if (!username) {
-		setFeedback("lobby", "Gib einen Namen ein, um eine Lobby zu erstellen.");
+	if (!canCreateLobby()) {
 		return;
 	}
+
+	const username = getUsername();
+	state.lobbyBusy = true;
+	renderApp();
 
 	try {
 		const settings = readCreateLobbySettings(refs);
@@ -35,17 +38,22 @@ export async function handleCreateLobby(event) {
 		await connectSession();
 	} catch (error) {
 		setFeedback("lobby", error.message);
+	} finally {
+		state.lobbyBusy = false;
+		renderApp();
 	}
 }
 
 export async function handleJoinLobby(event) {
 	event.preventDefault();
-	const username = getUsername();
-	const lobbyCode = refs.joinCodeInput.value.trim().toUpperCase();
-	if (!username || !lobbyCode) {
-		setFeedback("lobby", "Gib einen Namen und einen Lobby-Code ein.");
+	if (!canJoinLobby()) {
 		return;
 	}
+
+	const username = getUsername();
+	const lobbyCode = refs.joinCodeInput.value.trim().toUpperCase();
+	state.lobbyBusy = true;
+	renderApp();
 
 	try {
 		const result = await client.joinLobby(username, lobbyCode);
@@ -62,6 +70,9 @@ export async function handleJoinLobby(event) {
 		await connectSession();
 	} catch (error) {
 		setFeedback("lobby", error.message);
+	} finally {
+		state.lobbyBusy = false;
+		renderApp();
 	}
 }
 

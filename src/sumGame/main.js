@@ -5,7 +5,7 @@ import { handleHashChange } from "./app/router.js";
 import { clearSession, closeStream, state } from "./app/state.js";
 import { connectSession } from "./network/stream.js";
 import { refs } from "./ui/refs.js";
-import { renderApp, setFeedback } from "./ui/render/index.js";
+import { renderApp, renderLobbyView, setFeedback } from "./ui/render/index.js";
 
 let initialized = false;
 
@@ -45,6 +45,8 @@ export function startSumGame() {
 
 	refs.roundsInput?.addEventListener("input", syncRoundsLabel);
 	syncRoundsLabel();
+	refs.usernameInput?.addEventListener("input", () => renderLobbyView());
+	refs.joinCodeInput?.addEventListener("input", () => renderLobbyView());
 	refs.createLobbyForm.addEventListener("submit", handleCreateLobby);
 	refs.joinLobbyForm.addEventListener("submit", handleJoinLobby);
 	refs.leaveLobbyButton.addEventListener("click", leaveLobby);

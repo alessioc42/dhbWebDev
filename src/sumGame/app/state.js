@@ -14,6 +14,7 @@ export const state = {
 		game: "",
 		highscores: "",
 	},
+	lobbyBusy: false,
 };
 
 export function recordRoundResult(result) {
