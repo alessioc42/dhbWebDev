@@ -12,12 +12,12 @@
         <section id="startPage">
             <form class="centerScreen" id="startForm">
                 <h1>Willkommen zum 10-er Übergang Spiel</h1>
-                <label>Bitte gib deinen Namen ein:</label>
+                <label for="nameInput">Bitte gib deinen Namen ein:</label>
                 <input class="inputField" id="nameInput" type="text" maxlength="20" placeholder="Name">
                 <button id="startBtn" type="button">Spiel starten</button>
             </form>
             <nav>
-                <button id="leaveBtn" type="button">Spiel verlassen</button>
+                <button id="leaveBtn" type="button" aria-label="Spiel beenden und zurück zum Mainscreen">Spiel verlassen</button>
             </nav>
         </section>
         
@@ -36,7 +36,7 @@
             </section>    
 
             <div class="centerScreen">
-                <button type="button" id="newTaskBtn">Neue Aufgabe</button>
+                <button type="button" id="newTaskBtn" aria-label="Neue Rechenaufgabe erzeugen">Neue Aufgabe</button>
                 
                 <form class="form" id="form">
                     <div class="aufgabe">
@@ -44,25 +44,25 @@
                         <span>+</span>
                         <span id="num2Span"></span>
                         <span>=</span>
-                        <input class="inputField" id="solutionInput" placeholder="Ergebnis">
-                        <button id="hint" type="button">i</button>
+                        <input class="inputField" id="solutionInput" type="number" min="10" max="110" placeholder="Ergebnis" aria-label="Ergebnis eingeben">
+                        <button id="hint" type="button" aria-label="Hinweis anzeigen">i</button>
                     </div>
                     <p id="hintText" class="hintText" aria-live="polite"></p>
 
                     <button type="submit" id="checkBtn">Ergebnis überprüfen</button>
                 </form>
             </div>
-                    <nav>
-                <button id="returnBtn" type="button">Spiel beenden</button>
+            <nav>
+                <button id="returnBtn" type="button" aria-label="Runde beenden und zurück zum Start">Runde beenden</button>
             </nav>
         </section>
 
         <section id="gameOverPage">
             <div class="centerScreen">
-                <h1>Zeit vorbei!</h1>
+                <h1 id="timeOver">Zeit vorbei!</h1>
                 <h2 id="finalName"></h2>
                 <h2>Punkte: <span id="finalScore"></span></h2>
-                <h2>Highscore: <span id="highScore"></span></h2>
+                <h3>Highscore: <span id="highScore"></span></h3>
                 <button type="submit" id="restartBtn">Nochmal spielen</button>
             </div>
         </section>

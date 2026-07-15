@@ -11,7 +11,8 @@ body{ /* allgemeine Seiteneinstellungen */
 
 #nameSpan,
 #pointsSpan,
-#timeSpan{
+#timeSpan,
+#finalName{
     color: #0984e3;
 }
 
@@ -184,4 +185,8 @@ nav {
         font-size: 1rem;
         line-height: 1.2;
     }
+}
+
+#timeOver{
+    color: red;
 }

@@ -57,6 +57,7 @@ function giveHint() {
 
         hintText.textContent = `${game.num1} + ${addToNextTen} = ${nextTen}`;
     }
+    solutionField.focus();
 }
 
 function genNewTask() { //generiert neue Zahlen und zeigt diese an
