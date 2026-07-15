@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="de">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -90,7 +90,19 @@
               <h2 class="panel-title">Lobby beitreten</h2>
               <label class="field">
                 <span class="field-label">Code</span>
-                <input class="field-input" id="joinCodeInput" name="code" maxlength="4" />
+                <input
+                  class="field-input"
+                  id="joinCodeInput"
+                  name="code"
+                  maxlength="4"
+                  autocapitalize="characters"
+                  autocomplete="off"
+                  inputmode="text"
+                  pattern="[A-Za-z]{4}"
+                  spellcheck="false"
+                  aria-describedby="joinCodeHint"
+                />
+                <span class="field-hint" id="joinCodeHint">Vier Buchstaben (A–Z).</span>
               </label>
               <button class="btn btn-primary" id="joinLobbySubmit" type="submit" disabled>Beitreten</button>
             </form>
@@ -110,19 +122,22 @@
 
           <div class="page-body stack">
             <section class="game-play stack">
-              <div id="roundTimeline" class="round-timeline" hidden></div>
+              <div id="roundTimeline" class="round-timeline" role="list" aria-label="Rundenverlauf" hidden></div>
               <div id="gameTargetNumber" class="play-info status status--idle" hidden></div>
               <div id="optionList" class="option-grid option-grid--rect"></div>
               <div id="equationChain" class="equation-chain" hidden>
                 <div id="equationExpr" class="equation-chain__expr" role="group" aria-label="Deine Rechnung">
-                  <span class="equation-piece equation-block equation-block--term equation-block--placeholder" aria-label="0">0</span>
+                  <span
+                    class="equation-piece equation-block equation-block--term equation-block--placeholder"
+                    aria-hidden="true"
+                  >0</span>
                 </div>
               </div>
             </section>
 
             <section class="game-scoreboard stack">
               <h2 class="section-title">Punktestand</h2>
-              <ul id="scoreboardList" class="scoreboard"></ul>
+              <ul id="scoreboardList" class="scoreboard" role="list" aria-label="Punktestand"></ul>
             </section>
 
             <div class="nav-actions">

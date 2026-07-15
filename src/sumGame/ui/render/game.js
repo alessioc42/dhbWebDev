@@ -44,9 +44,13 @@ function renderRoundTimeline(gameState, localPlayerSecret) {
 	const currentRound = gameState.roundNumber;
 	const fragment = document.createDocumentFragment();
 
+	refs.roundTimeline.setAttribute("role", "list");
+	refs.roundTimeline.setAttribute("aria-label", "Rundenverlauf");
+
 	for (let roundNumber = 1; roundNumber <= totalRounds; roundNumber += 1) {
 		const slot = document.createElement("div");
 		slot.className = "round-timeline__slot";
+		slot.setAttribute("role", "listitem");
 
 		if (outcomes.has(roundNumber)) {
 			const won = outcomes.get(roundNumber);
@@ -117,11 +121,19 @@ function renderPlayInfo(gameState, localPlayer) {
 
 function renderScoreboard(localPlayerSecret, players) {
 	refs.scoreboardList.innerHTML = "";
+	refs.scoreboardList.setAttribute("role", "list");
+	refs.scoreboardList.setAttribute("aria-label", "Punktestand");
+
 	for (const player of players) {
 		const item = document.createElement("li");
 		const isLocal = player.userSecret === localPlayerSecret;
+		const roundScore = formatScore(player.roundValue);
+		const totalScore = formatScore(player.totalScore);
+		const summary = `Runde ${roundScore}, gesamt ${totalScore}`;
+
 		item.className = isLocal ? "scoreboard-row scoreboard-row--local" : "scoreboard-row";
-		item.textContent = `${player.username}: Runde ${formatScore(player.roundValue)} | gesamt ${formatScore(player.totalScore)}`;
+		item.textContent = `${player.username}: Runde ${roundScore} | gesamt ${totalScore}`;
+		item.setAttribute("aria-label", isLocal ? `Du, ${player.username}, ${summary}` : `${player.username}, ${summary}`);
 		refs.scoreboardList.append(item);
 	}
 }
@@ -152,6 +164,10 @@ function renderOptions(gameState, localPlayer, setFeedback, renderApp) {
 		button.type = "button";
 		button.className = isSelected ? "option-cell option-cell--selected" : "option-cell";
 		button.textContent = String(option.value);
+		button.setAttribute(
+			"aria-label",
+			isSelected ? `Zahl ${option.value}, ausgewählt` : `Zahl ${option.value} auswählen`,
+		);
 		button.setAttribute("aria-pressed", String(isSelected));
 		button.addEventListener("click", async () => {
 			try {

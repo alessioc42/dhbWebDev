@@ -196,6 +196,11 @@ select.field-input:disabled {
 	color: var(--disabled-fg);
 }
 
+.field-hint {
+	font-size: 0.8125rem;
+	color: var(--blue-muted);
+}
+
 .field-range__head {
 	display: flex;
 	justify-content: space-between;

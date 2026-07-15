@@ -6,13 +6,12 @@ const EQUATION_SUM_UPDATE_DELAY_MS = 320;
 function createEquationBlock(value, { placeholder = false, variant = "term" } = {}) {
 	const block = document.createElement("span");
 	block.className = `equation-piece equation-block equation-block--${variant}`;
+	block.setAttribute("aria-hidden", "true");
 	if (placeholder) {
 		block.classList.add("equation-block--placeholder");
 		block.textContent = "0";
-		block.setAttribute("aria-label", "0");
 	} else {
 		block.textContent = String(value);
-		block.setAttribute("aria-label", String(value));
 	}
 
 	return block;
@@ -89,6 +88,35 @@ export function buildEquationPlan(selectedOptions, sumValue, targetValue) {
 	return pieces;
 }
 
+export function describeEquationPlan(plan) {
+	const spoken = [];
+
+	for (const piece of plan) {
+		if (piece.type === "block") {
+			spoken.push(piece.placeholder ? "0" : String(piece.value));
+			continue;
+		}
+
+		if (piece.symbol === "+") {
+			spoken.push("plus");
+		} else if (piece.symbol === "=") {
+			spoken.push("gleich");
+		} else if (piece.symbol === "≠") {
+			spoken.push("ungleich Ziel");
+		}
+	}
+
+	return spoken.join(" ");
+}
+
+function syncEquationAccessibility(expression, plan) {
+	expression.setAttribute("aria-label", describeEquationPlan(plan));
+
+	for (const child of expression.children) {
+		child.setAttribute("aria-hidden", "true");
+	}
+}
+
 function createEquationPiece(piece, staggerIndex = 0) {
 	const element =
 		piece.type === "operator"
@@ -124,7 +152,6 @@ function updateEquationPiece(element, piece) {
 	const displayValue = piece.placeholder ? "0" : String(piece.value);
 	if (element.textContent !== displayValue) {
 		element.textContent = displayValue;
-		element.setAttribute("aria-label", displayValue);
 		element.classList.remove("equation-piece--bump");
 		void element.offsetWidth;
 		element.classList.add("equation-piece--bump");
@@ -215,6 +242,8 @@ export function applyEquationPlan(expression, plan) {
 	if (deferredSum) {
 		scheduleSumUpdate(expression, deferredSum.element, deferredSum.piece, insertionAnimationDelay(enterIndex));
 	}
+
+	syncEquationAccessibility(expression, plan);
 }
 
 export function syncEquationExpression(expression, plan) {
