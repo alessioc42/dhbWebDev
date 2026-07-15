@@ -157,7 +157,7 @@ function renderPage(){  //routing
         location.hash = "#start";
     }
 
-    let hash = location.hash;
+    const hash = location.hash;
     switch (hash) {
         case "#start":
             startPage.style.display = "block";
@@ -197,7 +197,7 @@ function renderPage(){  //routing
 addEventListener("DOMContentLoaded", (event) => {   //erst wenn html geladen und skript ausgeführt wurde
     window.addEventListener("hashchange", renderPage);
     window.addEventListener("load", () => {
-        renderPage,
+        renderPage(),
         location.hash = "#start";
     });
 
